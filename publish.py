@@ -27,6 +27,17 @@ import urllib.error
 import urllib.request
 from datetime import date, datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+TPE = ZoneInfo("Asia/Taipei")
+
+
+def today() -> date:
+    return datetime.now(TPE).date()
+
+
+def now() -> datetime:
+    return datetime.now(TPE)
 
 ROOT = Path(__file__).resolve().parent
 DECKS = ROOT / "decks"
@@ -127,7 +138,7 @@ def build_index() -> None:
 <body>
   <div class="wrap">
     <h1>Jacky 的簡報</h1>
-    <p class="sub">共 {len(items)} 份 · 更新於 {datetime.now().strftime("%Y-%m-%d %H:%M")}</p>
+    <p class="sub">共 {len(items)} 份 · 更新於 {now().strftime("%Y-%m-%d %H:%M")}</p>
     <div class="grid">
 {cards}
     </div>
@@ -171,16 +182,16 @@ def publish(src: Path, title: str = "", slug: str = "", wait: bool = True) -> di
     title = title or extract_title(src) or src.stem
     slug = slugify(slug) or slugify(src.stem) or slugify(title)
     if not slug:
-        slug = "deck-" + datetime.now().strftime("%H%M%S")
-    slug = f"{date.today():%Y-%m-%d}-{slug}" if not re.match(r"^\d{4}-\d{2}-\d{2}-", slug) else slug
+        slug = "deck-" + now().strftime("%H%M%S")
+    slug = f"{today():%Y-%m-%d}-{slug}" if not re.match(r"^\d{4}-\d{2}-\d{2}-", slug) else slug
 
     dest = DECKS / f"{slug}.html"
     replaced = dest.exists()
     shutil.copyfile(src, dest)
 
     meta = load_meta()
-    meta[slug] = {"title": title, "date": date.today().isoformat(),
-                  "updated": datetime.now().isoformat(timespec="seconds")}
+    meta[slug] = {"title": title, "date": today().isoformat(),
+                  "updated": now().isoformat(timespec="seconds")}
     save_meta(meta)
     build_index()
     git_sync(("update" if replaced else "publish") + f": {slug}")
