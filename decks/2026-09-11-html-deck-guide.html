@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>HTML 簡報製作法 — 為什麼改、怎麼做、怎麼傳</title>
+<style>
+  :root{
+    --stage-w:1280px; --stage-h:720px;
+    --bg:#0b0d12; --paper:#fff; --ink:#12161f; --mut:#667085; --line:#e6e8ec;
+    --acc:#2f6bff; --acc2:#7c3aed; --warm:#e8590c; --ok:#0f9d58; --soft:#f4f6fa;
+    --pad:64px;
+    --font:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,-apple-system,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{ background:var(--bg); font-family:var(--font); color:var(--ink);
+    overflow:hidden; display:grid; place-items:center; -webkit-font-smoothing:antialiased; }
+
+  #stage{ width:var(--stage-w); height:var(--stage-h); position:relative;
+    transform-origin:center center; box-shadow:0 30px 90px rgba(0,0,0,.5);
+    border-radius:14px; background:var(--paper); overflow:hidden; }
+
+  .slide{ position:absolute; inset:0; padding:var(--pad);
+    display:flex; flex-direction:column; justify-content:center;
+    opacity:0; visibility:hidden; transform:translateY(10px);
+    transition:opacity .32s ease, transform .32s ease, visibility .32s; }
+  .slide.on{ opacity:1; visibility:visible; transform:none; }
+
+  .slide.cover{ background:radial-gradient(125% 95% at 10% -5%, #e9f0ff 0%, #fff 58%); }
+  .cover .kicker{ color:var(--acc); font-weight:700; letter-spacing:.2em; font-size:14px; }
+  .cover h1{ font-size:58px; line-height:1.14; letter-spacing:-.025em; margin:20px 0 16px; }
+  .cover h1 .g{ background:linear-gradient(92deg,var(--acc),var(--acc2));
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  .cover .sub{ font-size:21px; color:var(--mut); max-width:64ch; line-height:1.6; }
+  .cover .by{ position:absolute; left:var(--pad); bottom:42px; color:var(--mut); font-size:14px; }
+
+  h2{ font-size:38px; letter-spacing:-.018em; line-height:1.24; }
+  h2 .em{ color:var(--acc); }
+  .rule{ width:56px; height:4px; background:var(--acc); border-radius:2px; margin:18px 0 0; }
+  .lead{ font-size:18px; color:var(--mut); margin-top:14px; max-width:76ch; line-height:1.6; }
+  .body{ margin-top:26px; font-size:18px; line-height:1.7; }
+
+  ul.bul{ list-style:none; display:flex; flex-direction:column; gap:13px; }
+  ul.bul li{ padding-left:29px; position:relative; }
+  ul.bul li::before{ content:""; position:absolute; left:5px; top:.62em;
+    width:9px; height:9px; border-radius:50%; background:var(--acc); }
+
+  .cols{ display:grid; grid-template-columns:1fr 1fr; gap:34px; margin-top:26px; }
+  .cols.w{ grid-template-columns:1.3fr 1fr; }
+
+  .cards{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:28px; }
+  .card{ background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:20px; }
+  .card .n{ font:700 12px/1 var(--mono); color:var(--acc); letter-spacing:.1em; }
+  .card h3{ font-size:19px; margin:9px 0 7px; }
+  .card p{ font-size:14.5px; color:var(--mut); line-height:1.58; }
+
+  .stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:26px; margin-top:32px; }
+  .stat .v{ font-size:54px; font-weight:800; letter-spacing:-.035em; color:var(--warm); line-height:1; }
+  .stat .v small{ font-size:24px; font-weight:700; }
+  .stat .k{ font-size:14.5px; color:var(--mut); margin-top:9px; line-height:1.5; }
+
+  table{ width:100%; border-collapse:collapse; font-size:16.5px; margin-top:22px; }
+  th,td{ text-align:left; padding:11px 13px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ font-size:12.5px; letter-spacing:.07em; color:var(--mut); text-transform:uppercase; }
+  tbody tr:hover{ background:var(--soft); }
+  td .no{ color:#b42318; } td .yes{ color:var(--ok); }
+
+  .quote{ font-size:33px; line-height:1.45; letter-spacing:-.012em; max-width:26ch; }
+  .quote::before{ content:"\201C"; color:var(--acc); font-size:62px; line-height:0;
+    vertical-align:-.22em; margin-right:5px; }
+  .who{ margin-top:20px; color:var(--mut); font-size:16px; }
+
+  .slide.chapter{ background:linear-gradient(135deg,#111621,#1f2a44); color:#fff; }
+  .chapter .no{ font:700 14px/1 var(--mono); color:#7aa2ff; letter-spacing:.22em; }
+  .chapter h2{ font-size:50px; margin-top:15px; color:#fff; }
+  .chapter .lead{ color:#a9b3c6; margin-top:16px; }
+
+  code{ font-family:var(--mono); font-size:.88em; background:var(--soft);
+    padding:2px 7px; border-radius:6px; }
+  pre{ background:#111621; color:#dfe6f5; border-radius:10px; padding:18px 20px;
+    font-family:var(--mono); font-size:14.5px; line-height:1.62; overflow:hidden; margin-top:8px; }
+  pre .c{ color:#7f8ba3; } pre .k{ color:#7aa2ff; } pre .s{ color:#7ee2a8; }
+  .tag{ display:inline-block; font-size:12.5px; padding:4px 11px; border-radius:99px;
+    background:#eaf0ff; color:var(--acc); font-weight:600; }
+  .tag.w{ background:#fff1e6; color:var(--warm); }
+  .tag.g{ background:#e6f6ed; color:var(--ok); }
+
+  /* 示範用：舞台縮放的示意圖 */
+  .demo{ margin-top:26px; display:grid; grid-template-columns:repeat(3,1fr); gap:18px; align-items:end; }
+  .screen{ border:2px solid var(--line); border-radius:8px; background:var(--soft);
+    position:relative; display:grid; place-items:center; }
+  .screen::after{ content:attr(data-l); position:absolute; bottom:-24px; left:0; right:0;
+    text-align:center; font-size:13px; color:var(--mut); }
+  .screen i{ display:block; background:linear-gradient(135deg,var(--acc),var(--acc2));
+    border-radius:3px; width:82%; aspect-ratio:16/9; }
+  .s1{ aspect-ratio:16/9; } .s2{ aspect-ratio:4/3; } .s3{ aspect-ratio:9/16; max-width:120px; margin:0 auto; }
+
+  .swatches{ display:flex; gap:10px; margin-top:8px; }
+  .sw{ width:44px; height:44px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.12); }
+
+  #bar{ position:absolute; left:0; top:0; height:3px; background:var(--acc); width:0;
+    transition:width .3s ease; z-index:5; }
+  #num{ position:absolute; right:24px; bottom:18px; font:600 12.5px/1 var(--mono);
+    color:var(--mut); z-index:5; }
+  .chapter #num{ color:#8a94a6; }
+
+  #grid{ position:fixed; inset:0; background:rgba(8,10,14,.95); display:none;
+    grid-template-columns:repeat(auto-fill,minmax(205px,1fr)); gap:13px;
+    padding:26px; overflow:auto; z-index:50; }
+  #grid.on{ display:grid; }
+  #grid .thumb{ aspect-ratio:16/9; background:#fff; border-radius:8px; cursor:pointer;
+    padding:11px; font-size:11px; color:var(--ink); overflow:hidden; border:2px solid transparent;
+    display:flex; flex-direction:column; gap:4px; }
+  #grid .thumb:hover{ border-color:var(--acc); }
+  #grid .thumb .ti{ font-weight:700; font-size:12px; line-height:1.35; }
+  #grid .thumb .tn{ margin-top:auto; color:var(--mut); font:600 10px/1 var(--mono); }
+
+  .notes{ display:none; }
+  #notepane{ position:fixed; left:0; right:0; bottom:0; max-height:32vh; overflow:auto;
+    background:#111621; color:#dfe3ea; padding:15px 22px; font-size:15px; line-height:1.65;
+    border-top:2px solid var(--acc); z-index:40; display:none; }
+
+  @media (max-width:640px) and (orientation:portrait){
+    body{ overflow:auto; display:block; background:var(--paper); }
+    #stage{ width:100%; height:auto; transform:none!important; box-shadow:none; border-radius:0; }
+    .slide{ position:relative; inset:auto; opacity:1; visibility:visible; transform:none;
+      padding:32px 20px; border-bottom:1px solid var(--line); }
+    .cover h1{ font-size:31px; } .chapter h2{ font-size:29px; } h2{ font-size:25px; }
+    .quote{ font-size:21px; max-width:none; } .stat .v{ font-size:37px; }
+    .cards,.stats,.cols,.demo{ grid-template-columns:1fr; }
+    .s3{ max-width:none; }
+    table{ font-size:14px; } th,td{ padding:8px 6px; }
+    #bar,#num,#hint{ display:none; }
+  }
+
+  @page{ size:1280px 720px; margin:0; }
+  @media print{
+    body{ background:#fff; display:block; overflow:visible; }
+    #stage{ width:1280px; height:auto; box-shadow:none; border-radius:0; transform:none!important; }
+    .slide{ position:relative; inset:auto; opacity:1!important; visibility:visible!important;
+      transform:none!important; height:720px; page-break-after:always; break-after:page; }
+    #bar,#grid,#hint,#notepane{ display:none!important; }
+  }
+
+  #hint{ position:fixed; left:50%; bottom:13px; transform:translateX(-50%);
+    color:#7e879a; font-size:12px; letter-spacing:.04em; z-index:6;
+    transition:opacity .5s; pointer-events:none; }
+  #hint.gone{ opacity:0; }
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <div id="bar"></div>
+  <div id="num"></div>
+
+  <section class="slide cover">
+    <span class="kicker">JACKY 的簡報新標準 · 2026-09-11</span>
+    <h1>簡報改用 <span class="g">HTML</span><br>為什麼改、怎麼做、怎麼傳</h1>
+    <p class="sub">這份簡報本身就是用這套方法做的，發佈在 GitHub Pages 上，你現在用網址打開它。</p>
+    <div class="by">鐘基啟 Jacky · 双云行銷 · 薇姐製作</div>
+    <div class="notes">開場一句：你發現的事情是對的，我把它變成一套可重複的做法，順便解決了傳輸問題。</div>
+  </section>
+
+  <section class="slide chapter">
+    <span class="no">PART 01</span>
+    <h2>為什麼改</h2>
+    <p class="lead">先把代價講清楚，再講好處。</p>
+    <div class="notes">誠實先行。HTML 不是萬靈丹，有三個明確代價。</div>
+  </section>
+
+  <section class="slide">
+    <h2>七個面向的<span class="em">實際差距</span></h2>
+    <div class="rule"></div>
+    <table>
+      <thead><tr><th style="width:20%">面向</th><th style="width:36%">pptx</th><th>單檔 HTML</th></tr></thead>
+      <tbody>
+        <tr><td>AI 產出速度</td><td>逐物件擺放，改一頁常要重跑整份</td><td class="yes">純文字，改一行就是改一頁</td></tr>
+        <tr><td>版面控制</td><td>座標式，字級一變全頁走位</td><td class="yes">排版引擎自動重排</td></tr>
+        <tr><td>視覺天花板</td><td>受 Office 圖形能力限制</td><td class="yes">整個瀏覽器的能力</td></tr>
+        <tr><td>跨螢幕</td><td>固定比例，各裝置各自尷尬</td><td class="yes">等比縮放，比例永遠一致</td></tr>
+        <tr><td>傳給別人</td><td>傳檔案，要有 Office，會跑版</td><td class="yes">傳一條網址</td></tr>
+        <tr><td>版本管理</td><td>二進位，看不出改了什麼</td><td class="yes">git diff 看得見</td></tr>
+        <tr><td>對方要編輯</td><td class="yes">原生支援</td><td class="no">要匯出，有損</td></tr>
+      </tbody>
+    </table>
+    <div class="notes">最後一列是唯一輸的，而且輸得很明確。</div>
+  </section>
+
+  <section class="slide">
+    <h2>三個代價，認清楚再上路</h2>
+    <div class="rule"></div>
+    <div class="cards">
+      <div class="card"><span class="n">01</span><h3>要可編輯檔時幫不上忙</h3>
+        <p>客戶說「ppt 給我，我要改」，就得走匯出，而匯出是有損的。一開始就要問清楚。</p></div>
+      <div class="card"><span class="n">02</span><h3>大圖會讓單檔變肥</h3>
+        <p>目標 5 MB 以內。超過就把圖片放外部網址，不要全部塞進檔案裡。</p></div>
+      <div class="card"><span class="n">03</span><h3>沒有 Office 協作註解</h3>
+        <p>團隊要在檔案上互相批改，pptx 還是比較順。</p></div>
+    </div>
+    <p class="lead" style="margin-top:26px"><b>判斷規則</b>：自己講、給人看、線上分享 → HTML。對方要接手編輯 → 先問清楚再決定。</p>
+  </section>
+
+  <section class="slide chapter">
+    <span class="no">PART 02</span>
+    <h2>舞台鎖定</h2>
+    <p class="lead">你說的「不同螢幕彈性排版」，真正的實作方式。</p>
+  </section>
+
+  <section class="slide">
+    <h2>內部用固定 px，外層做<span class="em">一次縮放</span></h2>
+    <div class="rule"></div>
+    <div class="cols w">
+      <div>
+        <pre><span class="c">/* 設計稿尺寸，永遠不變 */</span>
+#stage{
+  <span class="k">width</span>: 1280px;
+  <span class="k">height</span>: 720px;
+  <span class="k">transform-origin</span>: center;
+}</pre>
+        <pre style="margin-top:12px"><span class="c">// 等比縮到視窗內</span>
+<span class="k">var</span> s = Math.min(
+  innerWidth  / 1280,
+  innerHeight / 720) * <span class="s">0.94</span>;
+stage.style.transform = <span class="s">'scale('</span>+s+<span class="s">')'</span>;</pre>
+      </div>
+      <div class="body" style="margin-top:0">
+        <ul class="bul">
+          <li>內部一律 px 排版，等於在設計稿上工作</li>
+          <li>外層只做一次 <code>transform: scale()</code></li>
+          <li>結果：手機、筆電、4K、投影機<b>比例完全一致</b></li>
+          <li>不會有元素換行、圖表被擠扁</li>
+        </ul>
+      </div>
+    </div>
+    <div class="notes">這是整套做法最重要的一招，一行 CSS 加三行 JS。</div>
+  </section>
+
+  <section class="slide">
+    <h2>同一份簡報，三種螢幕</h2>
+    <div class="rule"></div>
+    <p class="lead">藍色方塊代表舞台。比例不變，只有周圍留白變化。手機直向是刻意的例外。</p>
+    <div class="demo" style="margin-bottom:30px">
+      <div class="screen s1" data-l="筆電 / 投影機 16:9"><i></i></div>
+      <div class="screen s2" data-l="舊投影機 4:3"><i></i></div>
+      <div class="screen s3" data-l="手機直向 → 改捲動"><i style="width:90%"></i></div>
+    </div>
+    <div class="notes">舊版簡報用 min(1100px, 96vw) 自適應寬度，手機上會壓扁。這次升級成舞台鎖定。</div>
+  </section>
+
+  <section class="slide">
+    <h2>操作介面</h2>
+    <div class="rule"></div>
+    <div class="cols">
+      <div class="body" style="margin-top:14px">
+        <ul class="bul">
+          <li><b>→ / 空白</b>　下一頁</li>
+          <li><b>←</b>　上一頁</li>
+          <li><b>O</b>　總覽縮圖，點一下跳頁</li>
+          <li><b>N</b>　講者備忘，觀眾看不到</li>
+        </ul>
+      </div>
+      <div class="body" style="margin-top:14px">
+        <ul class="bul">
+          <li><b>F</b>　全螢幕</li>
+          <li><b>P</b>　列印成 PDF，每頁一張</li>
+          <li>點左右半邊翻頁、手機滑動</li>
+          <li>網址加 <code>#7</code> 直接開第 7 頁</li>
+        </ul>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:24px">現在就可以按 <b>O</b> 試試看總覽。</p>
+    <div class="notes">請他當場按 O 和 N，體感比講解有用。</div>
+  </section>
+
+  <section class="slide chapter">
+    <span class="no">PART 03</span>
+    <h2>視覺可能性</h2>
+    <p class="lead">HTML 相對 pptx 真正拉開差距的地方。</p>
+  </section>
+
+  <section class="slide">
+    <h2>免費就有的，寫兩行 CSS</h2>
+    <div class="rule"></div>
+    <div class="cols">
+      <div class="body" style="margin-top:16px">
+        <ul class="bul">
+          <li><b>漸層與光暈</b>　封面氛圍，比 pptx 自然</li>
+          <li><b>毛玻璃</b>　浮層壓在圖上還看得見底</li>
+          <li><b>陰影層次</b>　多層疊出紙張浮起感</li>
+          <li><b>文字漸層</b>　標題單字上色（看封面）</li>
+          <li><b>深色自動切換</b>　對方手機深色，簡報跟著深</li>
+        </ul>
+      </div>
+      <div>
+        <span class="tag">實際效果</span>
+        <div style="margin-top:14px; border-radius:12px; padding:22px; color:#fff;
+          background:radial-gradient(120% 130% at 15% 0%, #4f7dff 0%, #7c3aed 60%, #3b1d7a 100%);">
+          <div style="font-size:15px; opacity:.85">漸層底 + 毛玻璃卡</div>
+          <div style="margin-top:12px; padding:14px 16px; border-radius:9px;
+            background:rgba(255,255,255,.16); backdrop-filter:blur(10px);
+            border:1px solid rgba(255,255,255,.28); font-size:15px; line-height:1.55;">
+            這張卡是半透明的，底下的漸層透出來，邊緣有一圈細亮線。
+          </div>
+        </div>
+        <div class="swatches">
+          <div class="sw" style="background:#2f6bff"></div>
+          <div class="sw" style="background:#7c3aed"></div>
+          <div class="sw" style="background:#e8590c"></div>
+          <div class="sw" style="background:#0f9d58"></div>
+          <div class="sw" style="background:#111621"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <h2>動態與互動：<span class="em">簡報變 Demo 的分水嶺</span></h2>
+    <div class="rule"></div>
+    <div class="cards">
+      <div class="card"><span class="n">動畫</span><h3>進出場、逐項出現</h3>
+        <p>講到哪出現到哪。數字從 0 滾到 4,239 億，打字機開場。</p></div>
+      <div class="card"><span class="n">互動</span><h3>可以真的點</h3>
+        <p>滑桿改參數即時看差異、切換方案對照、App 原型可以按。</p></div>
+      <div class="card"><span class="n">敘事</span><h3>捲動式故事</h3>
+        <p>一路往下滑，圖表隨捲動變化。時間軸動畫做產品發表級敘事。</p></div>
+    </div>
+    <p class="lead" style="margin-top:24px">客戶自己動手玩過一次，記得住的程度跟看投影片完全不同。</p>
+    <div class="notes">這一頁是說服客戶改用 HTML 的主力論點。</div>
+  </section>
+
+  <section class="slide">
+    <h2>資料視覺化</h2>
+    <div class="rule"></div>
+    <div class="cols w">
+      <div class="body" style="margin-top:14px">
+        <ul class="bul">
+          <li><b>內嵌 SVG</b>　可動、可標註，放大不糊</li>
+          <li><b>Canvas 圖表</b>　資料量大時用</li>
+          <li><b>Mermaid</b>　文字描述直接畫流程圖，改流程只改文字</li>
+          <li><b>知識圖譜</b>　graphify 的產出直接嵌進來</li>
+        </ul>
+      </div>
+      <div>
+        <svg viewBox="0 0 260 150" style="width:100%;height:auto">
+          <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#2f6bff" stop-opacity=".9"/>
+            <stop offset="1" stop-color="#2f6bff" stop-opacity=".15"/></linearGradient></defs>
+          <polyline points="10,120 55,95 100,102 145,60 190,48 235,20"
+            fill="none" stroke="#2f6bff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <polygon points="10,120 55,95 100,102 145,60 190,48 235,20 235,140 10,140" fill="url(#g1)"/>
+          <circle cx="235" cy="20" r="5" fill="#e8590c"/>
+          <text x="196" y="14" font-size="11" fill="#667085" font-family="ui-monospace,monospace">+177%</text>
+          <line x1="10" y1="140" x2="248" y2="140" stroke="#e6e8ec" stroke-width="1.5"/>
+        </svg>
+        <p style="font-size:13px;color:var(--mut);margin-top:6px">
+          這是純 SVG，沒有載任何函式庫，放大到 4K 也不糊。
+        </p>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:20px">
+      <span class="tag w">零幻覺鐵律</span>　圖表好看不代表數字對。每個數字先查真實來源，查不到就標查不到。</p>
+    <div class="notes">這條規矩對他特別重要，一定要放進來。</div>
+  </section>
+
+  <section class="slide">
+    <h2>反 AI 味清單</h2>
+    <div class="rule"></div>
+    <p class="lead">AI 做的簡報有一種一眼可辨的廉價感，來源通常是這幾件事。</p>
+    <div class="cols">
+      <div class="body" style="margin-top:18px">
+        <span class="tag" style="background:#fee;color:#b42318">別做</span>
+        <ul class="bul" style="margin-top:14px">
+          <li>滿版紫藍漸層</li>
+          <li>每張卡片都加 emoji</li>
+          <li>所有東西置中</li>
+          <li>字級只有大中小三級</li>
+        </ul>
+      </div>
+      <div class="body" style="margin-top:18px">
+        <span class="tag g">要做</span>
+        <ul class="bul" style="margin-top:14px">
+          <li>先選明確的設計方向再開工</li>
+          <li>字級至少五級，級距拉開</li>
+          <li>留白敢留，一頁一件事</li>
+          <li>主色一個、輔色一個，其餘灰階</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide chapter">
+    <span class="no">PART 04</span>
+    <h2>傳輸問題解掉了</h2>
+    <p class="lead">今晚建好的公開空間與三種發佈方式。</p>
+  </section>
+
+  <section class="slide">
+    <h2>傳一份 .html 給薇姐，<span class="em">回你一條網址</span></h2>
+    <div class="rule"></div>
+    <div class="cards">
+      <div class="card"><span class="n">A · 首選</span><h3>Telegram</h3>
+        <p>把 .html 檔傳給薇姐，她發佈完回公開網址。手機、任何地方都能發。說明文字＝標題。</p></div>
+      <div class="card"><span class="n">B</span><h3>終端機</h3>
+        <p><code>pubslide 檔案.html</code><br>加 <code>--title "標題"</code>。<code>--list</code> 看清單。</p></div>
+      <div class="card"><span class="n">C</span><h3>手動</h3>
+        <p>放進 <code>~/slides/decks/</code>，跑 <code>publish.py --reindex</code>。</p></div>
+    </div>
+    <div class="stats" style="margin-top:32px">
+      <div class="stat"><div class="v">0<small> 元</small></div><div class="k">GitHub Pages 免費、無流量限制</div></div>
+      <div class="stat"><div class="v">~90<small> 秒</small></div><div class="k">從傳檔到網址可開</div></div>
+      <div class="stat"><div class="v">1<small> 條</small></div><div class="k">傳給別人只需要一條網址</div></div>
+    </div>
+    <div class="notes">重點是 A：他人在外面跑行程，手機就能發佈。</div>
+  </section>
+
+  <section class="slide">
+    <h2>三個限制，一定要知道</h2>
+    <div class="rule"></div>
+    <div class="body" style="margin-top:20px">
+      <ul class="bul">
+        <li><b>公開就是公開。</b>任何拿到網址的人都能看，repo 歷史也留著。客戶機密簡報走 Google Drive 權限管控，不要放這裡。</li>
+        <li><b>Telegram 傳檔上限 20 MB。</b>內嵌大量圖片會超過，把圖壓小或改用外部網址。</li>
+        <li><b>撤下不等於從未存在。</b>網址會失效，但 git 歷史仍有紀錄。真正敏感的東西不要先發了再撤。</li>
+      </ul>
+    </div>
+    <p class="lead" style="margin-top:26px">要撤下就跟薇姐說「撤下 <code>2026-09-11-xxx</code>」。</p>
+  </section>
+
+  <section class="slide">
+    <h2>匯出成別的格式</h2>
+    <div class="rule"></div>
+    <table>
+      <thead><tr><th style="width:22%">要什麼</th><th style="width:44%">怎麼做</th><th>損耗</th></tr></thead>
+      <tbody>
+        <tr><td>PDF</td><td>按 Ctrl/Cmd+P，選橫向、無邊界</td><td>動畫沒了，版面完整</td></tr>
+        <tr><td>可編輯 PPTX</td><td>huashu-design 的 export_deck_pptx.mjs</td><td class="no">複雜版面、動畫會掉</td></tr>
+        <tr><td>圖片</td><td>Playwright 截圖或 PDF 轉圖</td><td class="yes">無</td></tr>
+        <tr><td>影片</td><td>huashu-design 的 HTML → MP4／GIF 管線</td><td class="yes">無</td></tr>
+      </tbody>
+    </table>
+    <p class="lead" style="margin-top:22px">要 pptx 就<b>一開始</b>走那條路線，事後補很貴。</p>
+  </section>
+
+  <section class="slide">
+    <p class="quote">傳一份檔案，對方要有對的軟體。傳一條網址，對方只要有眼睛。</p>
+    <p class="who">— 這次改變真正解決的問題</p>
+    <div class="notes">這句可以當作對外說服客戶的一句話。</div>
+  </section>
+
+  <section class="slide cover">
+    <span class="kicker">下一步</span>
+    <h1>現在就可以用</h1>
+    <div class="body" style="margin-top:8px; max-width:70ch">
+      <ul class="bul">
+        <li>範本：<code>~/slides/decks/_template.html</code>，複製改標題就開工</li>
+        <li>知識文件：<code>jacky-wiki/wiki/ailab/patterns/HTML簡報製作法.md</code></li>
+        <li>公開空間：<code>gjj22622.github.io/slides/</code></li>
+        <li>要做到專業設計水準或加動畫，叫 <code>huashu-design</code> skill</li>
+      </ul>
+    </div>
+    <div class="by">按 P 可以把這份存成 PDF · 按 O 看總覽</div>
+  </section>
+
+</div>
+
+<div id="grid"></div>
+<div id="notepane"></div>
+<div id="hint">← → 翻頁 · O 總覽 · N 備忘 · F 全螢幕 · P 存 PDF</div>
+
+<script>
+(function(){
+  var stage=document.getElementById('stage'),
+      slides=[].slice.call(document.querySelectorAll('.slide')),
+      bar=document.getElementById('bar'), num=document.getElementById('num'),
+      grid=document.getElementById('grid'), notep=document.getElementById('notepane'),
+      hint=document.getElementById('hint'), i=0, mobile=false;
+
+  function fit(){
+    mobile=window.matchMedia('(max-width:640px) and (orientation:portrait)').matches;
+    if(mobile){ stage.style.transform=''; slides.forEach(function(s){s.classList.add('on');}); return; }
+    var s=Math.min(window.innerWidth/stage.offsetWidth, window.innerHeight/stage.offsetHeight)*0.94;
+    stage.style.transform='scale('+s+')'; show(i);
+  }
+  function show(n){
+    if(mobile) return;
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach(function(s,k){ s.classList.toggle('on',k===i); });
+    bar.style.width=((i+1)/slides.length*100)+'%';
+    num.textContent=(i+1)+' / '+slides.length;
+    var nt=slides[i].querySelector('.notes');
+    notep.textContent=nt?nt.textContent.trim():'（這頁沒有備忘）';
+    if(location.hash.slice(1)!=(i+1)) history.replaceState(null,'','#'+(i+1));
+  }
+  function buildGrid(){
+    grid.innerHTML='';
+    slides.forEach(function(s,k){
+      var h=s.querySelector('h1,h2,.quote'), d=document.createElement('div');
+      d.className='thumb';
+      d.innerHTML='<div class="ti">'+(h?h.textContent.trim().slice(0,46):'—')+
+                  '</div><div class="tn">'+(k+1)+'</div>';
+      d.onclick=function(){ grid.classList.remove('on'); show(k); };
+      grid.appendChild(d);
+    });
+  }
+  document.addEventListener('keydown',function(e){
+    var k=e.key;
+    if(k==='ArrowRight'||k===' '||k==='PageDown'){ e.preventDefault(); show(i+1); }
+    else if(k==='ArrowLeft'||k==='PageUp'){ e.preventDefault(); show(i-1); }
+    else if(k==='Home'){ show(0); } else if(k==='End'){ show(slides.length-1); }
+    else if(k==='o'||k==='O'){ buildGrid(); grid.classList.toggle('on'); }
+    else if(k==='n'||k==='N'){ notep.style.display=notep.style.display==='block'?'none':'block'; }
+    else if(k==='f'||k==='F'){ document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen(); }
+    else if(k==='Escape'){ grid.classList.remove('on'); }
+  });
+  stage.addEventListener('click',function(e){ if(!mobile) show(e.clientX<window.innerWidth/2?i-1:i+1); });
+  var x0=null;
+  stage.addEventListener('touchstart',function(e){ x0=e.touches[0].clientX; },{passive:true});
+  stage.addEventListener('touchend',function(e){
+    if(mobile||x0===null) return;
+    var dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>45) show(dx<0?i+1:i-1);
+    x0=null;
+  },{passive:true});
+  window.addEventListener('resize',fit); window.addEventListener('orientationchange',fit);
+  var st=parseInt(location.hash.slice(1),10);
+  i=(st>0&&st<=slides.length)?st-1:0;
+  fit();
+  setTimeout(function(){ hint.classList.add('gone'); },4200);
+})();
+</script>
+</body>
+</html>
