@@ -167,10 +167,20 @@ def wait_live(url: str, timeout: int = 150) -> bool:
 
 
 def git_sync(msg: str) -> None:
+    """commit + push；多個對話／裝置同時發佈時先 rebase 再推，不互相打架。"""
     sh(["git", "add", "-A"])
     if sh(["git", "status", "--porcelain"]):
         sh(["git", *GIT_ENV, "commit", "-qm", msg])
-    sh(["git", "push", "-q", "origin", "main"], timeout=180)
+    for attempt in range(3):
+        r = subprocess.run(["git", "push", "-q", "origin", "main"], cwd=str(ROOT),
+                           text=True, capture_output=True, timeout=180)
+        if r.returncode == 0:
+            return
+        # 遠端有別人剛推的東西 → 拉下來重放自己的 commit 再推
+        subprocess.run(["git", *GIT_ENV, "pull", "--rebase", "-q", "origin", "main"],
+                       cwd=str(ROOT), text=True, capture_output=True, timeout=180)
+        time.sleep(1 + attempt)
+    raise SystemExit(f"推不上去：{r.stderr.strip()[:200]}")
 
 
 def publish(src: Path, title: str = "", slug: str = "", wait: bool = True) -> dict:
