@@ -204,10 +204,18 @@ def publish(src: Path, title: str = "", slug: str = "", wait: bool = True) -> di
 
 def unpublish(slug: str) -> dict:
     slug = slug.strip().removesuffix(".html")
-    cands = [p for p in DECKS.glob("*.html") if p.stem == slug or slug in p.stem]
-    if not cands:
-        raise SystemExit(f"找不到已發佈的：{slug}")
-    target = cands[0]
+    all_decks = [p for p in sorted(DECKS.glob("*.html")) if not p.name.startswith("_")]
+    exact = [p for p in all_decks if p.stem == slug]
+    if exact:
+        target = exact[0]
+    else:
+        part = [p for p in all_decks if slug and slug in p.stem]
+        if not part:
+            raise SystemExit(f"找不到已發佈的：{slug}")
+        if len(part) > 1:
+            raise SystemExit("「" + slug + "」對到多份，講清楚是哪一份：" +
+                             "、".join(p.stem for p in part[:6]))
+        target = part[0]
     target.unlink()
     meta = load_meta()
     meta.pop(target.stem, None)
