@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>私密簡報</title>
+<style>
+  :root{ --bg:#0d1017; --card:#161a22; --line:#272d3a; --fg:#e8eaed; --mut:#8b93a3; --acc:#2f6bff; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{ background:var(--bg); color:var(--fg); display:grid; place-items:center;
+    font:16px/1.6 "PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif; }
+  .box{ width:min(400px,92vw); background:var(--card); border:1px solid var(--line);
+    border-radius:16px; padding:34px 30px; box-shadow:0 24px 70px rgba(0,0,0,.5); }
+  .lock{ font-size:26px; }
+  h1{ font-size:19px; margin:14px 0 6px; letter-spacing:-.01em; }
+  p.s{ color:var(--mut); font-size:13.5px; margin-bottom:22px; line-height:1.55; }
+  input{ width:100%; padding:13px 15px; border-radius:10px; border:1px solid var(--line);
+    background:#0f131b; color:var(--fg); font-size:16px; outline:none; }
+  input:focus{ border-color:var(--acc); }
+  button{ width:100%; margin-top:11px; padding:13px; border:0; border-radius:10px;
+    background:var(--acc); color:#fff; font-size:15.5px; font-weight:600; cursor:pointer; }
+  button:disabled{ opacity:.55; cursor:default; }
+  .err{ color:#ff8080; font-size:13.5px; margin-top:12px; min-height:19px; }
+  .foot{ color:#5f6675; font-size:11.5px; margin-top:20px; line-height:1.5; }
+  #frame{ position:fixed; inset:0; width:100%; height:100%; border:0; display:none;
+    background:#fff; z-index:10; }
+</style>
+</head>
+<body>
+  <div class="box" id="gate">
+    <div class="lock">🔒</div>
+    <h1>私密簡報</h1>
+    <p class="s">這份內容是加密的，輸入密碼才看得到。</p>
+    <input id="pw" type="password" placeholder="密碼" autocomplete="current-password" autofocus>
+    <button id="go">解鎖</button>
+    <div class="err" id="err"></div>
+    <div class="foot">內容以 AES-256-GCM 加密，解密在你的瀏覽器裡完成，密碼不會送到任何伺服器。</div>
+  </div>
+  <iframe id="frame" allow="fullscreen" allowfullscreen></iframe>
+
+<script id="payload" type="application/json">{"s": "a4QwtqanVvZCox+UZya3dg==", "i": "wV0k3BOgJyMBNAiz", "c": "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", "n": 310000}</script>
+<script>
+(function(){
+  var D = JSON.parse(document.getElementById('payload').textContent);
+  var gate = document.getElementById('gate'), pw = document.getElementById('pw'),
+      go = document.getElementById('go'), err = document.getElementById('err'),
+      frame = document.getElementById('frame');
+
+  function b2a(b64){ var s=atob(b64), u=new Uint8Array(s.length);
+    for(var i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u; }
+
+  async function unlock(){
+    var p = pw.value;
+    if(!p) return;
+    go.disabled = true; err.textContent = ''; go.textContent = '解密中…';
+    try{
+      var base = await crypto.subtle.importKey('raw', new TextEncoder().encode(p),
+                    'PBKDF2', false, ['deriveKey']);
+      var key = await crypto.subtle.deriveKey(
+        { name:'PBKDF2', salt:b2a(D.s), iterations:D.n, hash:'SHA-256' },
+        base, { name:'AES-GCM', length:256 }, false, ['decrypt']);
+      var plain = await crypto.subtle.decrypt({ name:'AES-GCM', iv:b2a(D.i) }, key, b2a(D.c));
+      var html = new TextDecoder().decode(plain);
+      gate.style.display = 'none';
+      frame.style.display = 'block';
+      frame.srcdoc = html;
+      frame.onload = function(){ try{ frame.contentWindow.focus(); }catch(e){} };
+      try{ sessionStorage.setItem('sk', p); }catch(e){}
+    }catch(e){
+      err.textContent = '密碼不對。';
+      go.disabled = false; go.textContent = '解鎖';
+      pw.select();
+    }
+  }
+
+  go.onclick = unlock;
+  pw.addEventListener('keydown', function(e){ if(e.key === 'Enter') unlock(); });
+  // 同一分頁內解過一次就不用再輸入（關掉分頁就失效）
+  try{
+    var saved = sessionStorage.getItem('sk');
+    if(saved){ pw.value = saved; unlock(); }
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

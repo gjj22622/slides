@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>私密區測試</title>
+<style>
+  :root{ --bg:#0d1017; --card:#161a22; --line:#272d3a; --fg:#e8eaed; --mut:#8b93a3; --acc:#2f6bff; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{ background:var(--bg); color:var(--fg); display:grid; place-items:center;
+    font:16px/1.6 "PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif; }
+  .box{ width:min(400px,92vw); background:var(--card); border:1px solid var(--line);
+    border-radius:16px; padding:34px 30px; box-shadow:0 24px 70px rgba(0,0,0,.5); }
+  .lock{ font-size:26px; }
+  h1{ font-size:19px; margin:14px 0 6px; letter-spacing:-.01em; }
+  p.s{ color:var(--mut); font-size:13.5px; margin-bottom:22px; line-height:1.55; }
+  input{ width:100%; padding:13px 15px; border-radius:10px; border:1px solid var(--line);
+    background:#0f131b; color:var(--fg); font-size:16px; outline:none; }
+  input:focus{ border-color:var(--acc); }
+  button{ width:100%; margin-top:11px; padding:13px; border:0; border-radius:10px;
+    background:var(--acc); color:#fff; font-size:15.5px; font-weight:600; cursor:pointer; }
+  button:disabled{ opacity:.55; cursor:default; }
+  .err{ color:#ff8080; font-size:13.5px; margin-top:12px; min-height:19px; }
+  .foot{ color:#5f6675; font-size:11.5px; margin-top:20px; line-height:1.5; }
+  #frame{ position:fixed; inset:0; width:100%; height:100%; border:0; display:none;
+    background:#fff; z-index:10; }
+</style>
+</head>
+<body>
+  <div class="box" id="gate">
+    <div class="lock">🔒</div>
+    <h1>私密區測試</h1>
+    <p class="s">這份內容是加密的，輸入密碼才看得到。</p>
+    <input id="pw" type="password" placeholder="密碼" autocomplete="current-password" autofocus>
+    <button id="go">解鎖</button>
+    <div class="err" id="err"></div>
+    <div class="foot">內容以 AES-256-GCM 加密，解密在你的瀏覽器裡完成，密碼不會送到任何伺服器。</div>
+  </div>
+  <iframe id="frame" allow="fullscreen" allowfullscreen></iframe>
+
+<script id="payload" type="application/json">{"s": "cAoPNNVFPKUpB2B0F/tG9g==", "i": "MgTuqC/p3q5AfkpN", "c": "MkAJZ8xts0gyOO75NIUEkNxnZsLv3nXaZEEf9YuDw1yS1akhcEo/IAHQiS7h087uuAHJ7ObvZVcbUfXYqArEZaNKlj/Bn1x6I3bfySTcSMeCoMvCF4gqse4ir+oDuHjMMaxhoGxGz2Su8kaYkEy1oPvqQBpb0DdPDZQeYjioEdlhqQt4X0DhLCazoj4EkaMnnDm+pEc817T13+mO1k+Gow+oiKKH+VlxgDWdEM7hRexOrTpGebUwDDxKrXWQM0SSc6J/lcoQ4EvnllXcijMdFd+x+WHoP6/5O4eUwEBuqgSDGcPfb13SZcI+nLfCW1HgFNuY15ynZOZKDaYZ9uqySQ0a7EKCdtZ/2bFSgg==", "n": 310000}</script>
+<script>
+(function(){
+  var D = JSON.parse(document.getElementById('payload').textContent);
+  var gate = document.getElementById('gate'), pw = document.getElementById('pw'),
+      go = document.getElementById('go'), err = document.getElementById('err'),
+      frame = document.getElementById('frame');
+
+  function b2a(b64){ var s=atob(b64), u=new Uint8Array(s.length);
+    for(var i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u; }
+
+  async function unlock(){
+    var p = pw.value;
+    if(!p) return;
+    go.disabled = true; err.textContent = ''; go.textContent = '解密中…';
+    try{
+      var base = await crypto.subtle.importKey('raw', new TextEncoder().encode(p),
+                    'PBKDF2', false, ['deriveKey']);
+      var key = await crypto.subtle.deriveKey(
+        { name:'PBKDF2', salt:b2a(D.s), iterations:D.n, hash:'SHA-256' },
+        base, { name:'AES-GCM', length:256 }, false, ['decrypt']);
+      var plain = await crypto.subtle.decrypt({ name:'AES-GCM', iv:b2a(D.i) }, key, b2a(D.c));
+      var html = new TextDecoder().decode(plain);
+      gate.style.display = 'none';
+      frame.style.display = 'block';
+      frame.srcdoc = html;
+      frame.onload = function(){ try{ frame.contentWindow.focus(); }catch(e){} };
+      try{ sessionStorage.setItem('sk', p); }catch(e){}
+    }catch(e){
+      err.textContent = '密碼不對。';
+      go.disabled = false; go.textContent = '解鎖';
+      pw.select();
+    }
+  }
+
+  go.onclick = unlock;
+  pw.addEventListener('keydown', function(e){ if(e.key === 'Enter') unlock(); });
+  // 同一分頁內解過一次就不用再輸入（關掉分頁就失效）
+  try{
+    var saved = sessionStorage.getItem('sk');
+    if(saved){ pw.value = saved; unlock(); }
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

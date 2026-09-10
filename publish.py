@@ -43,6 +43,9 @@ ROOT = Path(__file__).resolve().parent
 DECKS = ROOT / "decks"
 BASE = "https://gjj22622.github.io/slides"
 META = ROOT / "decks" / "_meta.json"
+PRIV = ROOT / "p"                    # 加密後的私密簡報（進 repo，但是密文）
+PRIV_SRC = ROOT / "private-src"      # 私密原始檔＋索引資料（gitignore，只留本機）
+PRIV_META = PRIV_SRC / "_meta.json"
 GIT_ENV = ["-c", "user.email=gjj22622@gmail.com", "-c", "user.name=Jacky"]
 
 
@@ -82,6 +85,97 @@ def load_meta() -> dict:
 
 def save_meta(m: dict) -> None:
     META.write_text(json.dumps(m, ensure_ascii=False, indent=1, sort_keys=True), encoding="utf-8")
+
+
+def load_priv_meta() -> dict:
+    try:
+        return json.loads(PRIV_META.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def save_priv_meta(m: dict) -> None:
+    PRIV_SRC.mkdir(parents=True, exist_ok=True)
+    PRIV_META.write_text(json.dumps(m, ensure_ascii=False, indent=1, sort_keys=True),
+                         encoding="utf-8")
+
+
+def build_private_index(password: str) -> None:
+    """私密區管理介面：本身也加密，解鎖後才看得到有哪些簡報。"""
+    import lockbox
+    meta = load_priv_meta()
+    rows = sorted(meta.items(), key=lambda kv: kv[1].get("date", ""), reverse=True)
+    inner = lockbox.private_index_html(rows, now().strftime("%Y-%m-%d %H:%M"))
+    PRIV.mkdir(parents=True, exist_ok=True)
+    (PRIV / "index.html").write_text(lockbox.wrap(inner, password, "私密簡報"), encoding="utf-8")
+
+
+def publish_private(src: Path, password: str, title: str = "", slug: str = "",
+                    wait: bool = True) -> dict:
+    """加密後發佈。原始檔留本機 private-src/（gitignore），repo 裡只有密文。"""
+    import lockbox
+    if not src.exists():
+        raise SystemExit(f"找不到檔案：{src}")
+    if src.suffix.lower() not in (".html", ".htm"):
+        raise SystemExit("只收 .html / .htm 單檔簡報")
+
+    title = title or extract_title(src) or src.stem
+    slug = slugify(slug) or slugify(src.stem) or slugify(title) or "deck-" + now().strftime("%H%M%S")
+    if not re.match(r"^\d{4}-\d{2}-\d{2}-", slug):
+        slug = f"{today():%Y-%m-%d}-{slug}"
+
+    plaintext = src.read_text(encoding="utf-8")
+    PRIV.mkdir(parents=True, exist_ok=True)
+    PRIV_SRC.mkdir(parents=True, exist_ok=True)
+    dest = PRIV / f"{slug}.html"
+    replaced = dest.exists()
+    dest.write_text(lockbox.wrap(plaintext, password, title), encoding="utf-8")
+    shutil.copyfile(src, PRIV_SRC / f"{slug}.html")      # 本機留明文原稿，方便改
+
+    meta = load_priv_meta()
+    meta[slug] = {"title": title, "date": today().isoformat(),
+                  "size": len(plaintext.encode()),
+                  "updated": now().isoformat(timespec="seconds")}
+    save_priv_meta(meta)
+    build_private_index(password)
+    build_index()
+    git_sync(("update" if replaced else "publish") + f": [private] {slug}")
+
+    url = f"{BASE}/p/{slug}.html"
+    live = wait_live(url) if wait else True
+    return {"slug": slug, "title": title, "url": url, "index": f"{BASE}/p/",
+            "live": live, "replaced": replaced, "size": len(plaintext.encode()),
+            "private": True}
+
+
+def unpublish_private(slug: str, password: str) -> dict:
+    slug = slug.strip().removesuffix(".html")
+    all_p = [q for q in sorted(PRIV.glob("*.html")) if q.name != "index.html"]
+    exact = [q for q in all_p if q.stem == slug]
+    if exact:
+        target = exact[0]
+    else:
+        part = [q for q in all_p if slug and slug in q.stem]
+        if not part:
+            raise SystemExit(f"私密區找不到：{slug}")
+        if len(part) > 1:
+            raise SystemExit("「" + slug + "」對到多份：" + "、".join(q.stem for q in part[:6]))
+        target = part[0]
+    target.unlink()
+    (PRIV_SRC / target.name).unlink(missing_ok=True)
+    meta = load_priv_meta()
+    meta.pop(target.stem, None)
+    save_priv_meta(meta)
+    build_private_index(password)
+    git_sync(f"unpublish: [private] {target.stem}")
+    return {"slug": target.stem, "removed": True, "private": True}
+
+
+def list_private() -> list[dict]:
+    meta = load_priv_meta()
+    return [{"slug": k, "title": v.get("title", k), "date": v.get("date", ""),
+             "url": f"{BASE}/p/{k}.html"}
+            for k, v in sorted(meta.items(), key=lambda kv: kv[1].get("date", ""), reverse=True)]
 
 
 def build_index() -> None:
@@ -142,7 +236,8 @@ def build_index() -> None:
     <div class="grid">
 {cards}
     </div>
-    <footer>公開網址，任何拿到連結的人都能看。機密簡報請放 Google Drive。</footer>
+    <footer>公開網址，任何拿到連結的人都能看。真正機密的請放 Google Drive。
+      <a href="p/" style="color:var(--mut);text-decoration:none;float:right">&#128274; 私密區</a></footer>
   </div>
 </body>
 </html>
@@ -255,20 +350,53 @@ def main() -> int:
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--unpublish", default="")
     ap.add_argument("--reindex", action="store_true")
+    ap.add_argument("--private", action="store_true", help="加密後發佈到私密區")
+    ap.add_argument("--password", default="", help="這一份用別的密碼（預設用本機密碼檔）")
+    ap.add_argument("--set-password", default="", help="設定／更換私密區主密碼")
     a = ap.parse_args()
+
+    import lockbox
+    if a.set_password:
+        lockbox.save_password(a.set_password)
+        try:
+            build_private_index(a.set_password)
+            if load_priv_meta():
+                print("提醒：既有私密簡報仍是舊密碼加密的，要換密碼請重跑一次 --private 發佈。")
+            git_sync("rekey: private index")
+        except Exception as exc:
+            print(f"（索引更新略過：{exc}）")
+        print(f"密碼已設定。強度：{lockbox.strength_note(a.set_password)}")
+        return 0
 
     if a.list:
         for d in list_decks():
-            print(f"{d['slug']}\t{d['title']}\t{d['url']}")
+            print(f"公開\t{d['slug']}\t{d['title']}\t{d['url']}")
+        for d in list_private():
+            print(f"私密\t{d['slug']}\t{d['title']}\t{d['url']}")
         return 0
     if a.unpublish:
-        print(json.dumps(unpublish(a.unpublish), ensure_ascii=False))
+        if a.private:
+            print(json.dumps(unpublish_private(a.unpublish, a.password or lockbox.load_password()),
+                             ensure_ascii=False))
+        else:
+            try:
+                print(json.dumps(unpublish(a.unpublish), ensure_ascii=False))
+            except SystemExit:
+                print(json.dumps(unpublish_private(a.unpublish,
+                      a.password or lockbox.load_password()), ensure_ascii=False))
         return 0
     if a.reindex:
-        build_index(); git_sync("reindex"); print("首頁已重建"); return 0
+        build_index()
+        if load_priv_meta():
+            build_private_index(a.password or lockbox.load_password())
+        git_sync("reindex"); print("首頁已重建"); return 0
     if not a.file:
         ap.print_help(); return 1
-    r = publish(Path(a.file).expanduser(), a.title, a.slug, wait=not a.no_wait)
+    if a.private:
+        r = publish_private(Path(a.file).expanduser(), a.password or lockbox.load_password(),
+                            a.title, a.slug, wait=not a.no_wait)
+    else:
+        r = publish(Path(a.file).expanduser(), a.title, a.slug, wait=not a.no_wait)
     print(json.dumps(r, ensure_ascii=False, indent=1))
     return 0
 
