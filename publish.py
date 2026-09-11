@@ -146,7 +146,9 @@ def publish_private(src: Path, password: str, title: str = "", slug: str = "",
     dest = PRIV / f"{slug}.html"
     replaced = dest.exists()
     dest.write_text(lockbox.wrap(plaintext, password, title), encoding="utf-8")
-    shutil.copyfile(src, PRIV_SRC / f"{slug}.html")      # 本機留明文原稿，方便改
+    keep = PRIV_SRC / f"{slug}.html"                     # 本機留明文原稿，方便改
+    if src.resolve() != keep.resolve():                  # 直接用原稿重發時不自我複製
+        shutil.copyfile(src, keep)
 
     meta = load_priv_meta(password)
     meta[slug] = {"title": title, "date": today().isoformat(),
