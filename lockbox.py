@@ -139,6 +139,8 @@ SHELL = """<!DOCTYPE html>
 <script id="payload" type="application/json">__PAYLOAD__</script>
 <script>
 (function(){
+  var WAS_BUSTED = /[?&]v=/.test(location.search);   // 進站當下就記住，之後網址會被清掉
+  function busted(){ return WAS_BUSTED; }
   var D = JSON.parse(document.getElementById('payload').textContent);
   var gate = document.getElementById('gate'), pw = document.getElementById('pw'),
       go = document.getElementById('go'), err = document.getElementById('err'),
@@ -183,7 +185,6 @@ SHELL = """<!DOCTYPE html>
     }
   }
 
-  function busted(){ return /[?&]v=/.test(location.search); }
 
   go.onclick = unlock;
   pw.addEventListener('keydown', function(e){ if(e.key === 'Enter') unlock(); });
