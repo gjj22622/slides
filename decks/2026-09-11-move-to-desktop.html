@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>移到本機 Claude Desktop — 移轉步驟</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --paper:#fff; --ink:#15181e; --mut:#5f6875; --line:#e3e7ec;
+    --acc:#2f6bff; --warm:#e8590c; --ok:#0f9d58; --soft:#f2f5fa; --code:#111621;
+    --font:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,-apple-system,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:#0e1117; --paper:#151921; --ink:#e7eaee; --mut:#98a1ae; --line:#252b35;
+           --soft:#1a1f28; --code:#0a0d13; }
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ background:var(--bg); color:var(--ink); font-family:var(--font);
+    font-size:16.5px; line-height:1.78; -webkit-font-smoothing:antialiased; }
+  .wrap{ max-width:820px; margin:0 auto; padding:56px 22px 110px; }
+
+  header{ border-bottom:1px solid var(--line); padding-bottom:26px; margin-bottom:34px; }
+  .kick{ font-size:12.5px; letter-spacing:.2em; color:var(--acc); font-weight:700; }
+  h1{ font-size:clamp(27px,4.4vw,38px); line-height:1.24; letter-spacing:-.02em; margin:12px 0 10px; }
+  .sub{ color:var(--mut); font-size:16px; }
+
+  h2{ font-size:22px; letter-spacing:-.012em; margin:44px 0 6px; padding-top:22px;
+      border-top:1px solid var(--line); }
+  h2:first-of-type{ border-top:0; padding-top:0; }
+  h2 .n{ display:inline-grid; place-items:center; width:27px; height:27px; border-radius:8px;
+    background:var(--acc); color:#fff; font:700 14px/1 var(--mono); margin-right:10px;
+    vertical-align:2px; }
+  h3{ font-size:17px; margin:26px 0 8px; }
+  p{ margin:10px 0; }
+  p.lead{ color:var(--mut); }
+  ul,ol{ margin:10px 0 10px 22px; }
+  li{ margin:6px 0; }
+  strong{ font-weight:700; }
+  a{ color:var(--acc); }
+
+  .card{ background:var(--paper); border:1px solid var(--line); border-radius:12px;
+    padding:20px 22px; margin:18px 0; }
+  .card.warn{ border-left:3px solid var(--warm); }
+  .card.ok{ border-left:3px solid var(--ok); }
+  .card.info{ border-left:3px solid var(--acc); }
+  .card h3{ margin-top:0; }
+
+  pre{ position:relative; background:var(--code); color:#dfe6f5; border-radius:10px;
+    padding:16px 52px 16px 18px; margin:12px 0; overflow-x:auto;
+    font-family:var(--mono); font-size:13.6px; line-height:1.68; }
+  pre code{ background:none; padding:0; color:inherit; font-size:inherit; }
+  code{ font-family:var(--mono); font-size:.89em; background:var(--soft);
+    padding:2px 6px; border-radius:5px; }
+  .copy{ position:absolute; right:9px; top:9px; border:1px solid #2c3545; background:#1b2130;
+    color:#9fb0c9; border-radius:7px; padding:4px 9px; font:600 11.5px/1.4 var(--font);
+    cursor:pointer; }
+  .copy:hover{ background:#252d3e; color:#d8e3f2; }
+  .copy.done{ background:#123a25; border-color:#1d5c3a; color:#7ee2a8; }
+
+  table{ width:100%; border-collapse:collapse; font-size:15.2px; margin:16px 0; }
+  th,td{ text-align:left; padding:10px 12px; border-bottom:1px solid var(--line);
+    vertical-align:top; }
+  th{ font-size:12.5px; letter-spacing:.05em; color:var(--mut); text-transform:uppercase; }
+  td.y{ color:var(--ok); } td.n{ color:#d1342f; }
+
+  .tabs{ display:flex; gap:6px; margin:14px 0 0; }
+  .tabs button{ border:1px solid var(--line); background:var(--paper); color:var(--mut);
+    border-radius:8px 8px 0 0; padding:8px 15px; font:600 14px var(--font); cursor:pointer;
+    border-bottom-color:transparent; }
+  .tabs button[aria-selected="true"]{ color:var(--acc); border-color:var(--line);
+    background:var(--soft); }
+  .pane{ display:none; border:1px solid var(--line); border-radius:0 10px 10px 10px;
+    padding:4px 16px 14px; background:var(--soft); }
+  .pane.on{ display:block; }
+
+  .chk{ list-style:none; margin-left:0; }
+  .chk li{ padding-left:28px; position:relative; }
+  .chk li::before{ content:"☐"; position:absolute; left:4px; color:var(--mut); font-size:16px; }
+
+  footer{ margin-top:52px; padding-top:20px; border-top:1px solid var(--line);
+    color:var(--mut); font-size:13.5px; }
+  @media print{ .copy{display:none} pre{white-space:pre-wrap} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kick">環境移轉 · 2026-09-11</div>
+  <h1>把簡報工作搬到本機 Claude Desktop</h1>
+  <p class="sub">照這份做完，本機就能自己做簡報、自己發佈、自己拿到公開網址。HP 那邊不用關。</p>
+</header>
+
+<div class="card ok">
+  <h3>先講一個好消息：不用裝 MCP</h3>
+  <p><strong>Claude Desktop 就是 Claude Code Desktop</strong>，同一個應用程式。裡面的 <strong>Code</strong> 分頁內建 Bash 與 PowerShell 工具，也能直接讀寫檔案，所以 <code>pubslide</code> 在上面跑得起來，不需要另外接檔案系統 MCP server。</p>
+  <p>CLI、Desktop、VS Code 擴充三者共用同一份 <code>CLAUDE.md</code>、skills 與設定，等於同一套環境的不同入口。</p>
+</div>
+
+<h2><span class="n">1</span>哪些搬、哪些不搬</h2>
+<p class="lead">這件事不是整組搬家，是把「做簡報」這條線複製過去，「薇姐」留在原地。</p>
+
+<table>
+  <thead><tr><th style="width:34%">東西</th><th style="width:16%">動作</th><th>為什麼</th></tr></thead>
+  <tbody>
+    <tr><td>簡報製作與發佈<br><span style="color:var(--mut);font-size:13.5px">slides repo、pubslide、範本</span></td>
+        <td class="y">搬過去</td><td>本機做、本機發，不用再連線到 HP</td></tr>
+    <tr><td>全域自動發佈規則<br><span style="color:var(--mut);font-size:13.5px">~/.claude/CLAUDE.md</span></td>
+        <td class="y">搬過去</td><td>這個檔沒有版本控制，不會自己跟著走</td></tr>
+    <tr><td>私密區密碼<br><span style="color:var(--mut);font-size:13.5px">~/.config/slides/password</span></td>
+        <td class="y">手動複製</td><td>刻意不進 repo，只能你自己搬</td></tr>
+    <tr><td><strong>薇姐</strong><br><span style="color:var(--mut);font-size:13.5px">Telegram bot、28 條排程</span></td>
+        <td class="n">留在 HP</td><td>要 24 小時醒著。筆電會睡、會關機、會離線，搬過去等於關掉她</td></tr>
+    <tr><td>她的記憶與名片庫<br><span style="color:var(--mut);font-size:13.5px">data/ 目錄</span></td>
+        <td class="n">留在 HP</td><td>個資，本來就不進 repo</td></tr>
+  </tbody>
+</table>
+
+<div class="card info">
+  <h3>搬完之後長這樣</h3>
+  <p><strong>HP</strong> 繼續當 24 小時的機器：薇姐、排程、情資早報、人脈提醒照常跑。</p>
+  <p><strong>本機</strong> 當工作台：做簡報、做報告、做原型，做完直接發佈拿網址。</p>
+  <p>兩邊共用同一個 GitHub repo，不會打架——發佈前程式會自動拉遠端，兩台發的東西都會出現在同一個首頁上。</p>
+</div>
+
+<h2><span class="n">2</span>裝 Claude Desktop</h2>
+<p>如果已經裝好可以跳過這段。Windows 二選一：</p>
+
+<div class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-t="w1">winget（建議）</button>
+  <button role="tab" aria-selected="false" data-t="w2">安裝腳本</button>
+</div>
+<div class="pane on" id="w1">
+<pre><code>winget install Anthropic.ClaudeCode</code></pre>
+</div>
+<div class="pane" id="w2">
+<pre><code>irm https://claude.ai/install.ps1 | iex</code></pre>
+</div>
+
+<p style="margin-top:16px">裝好打開，切到 <strong>Code</strong> 分頁，用你的 Claude 帳號登入。之後所有指令都可以直接叫它幫你跑，你不用自己開終端機。</p>
+
+<h2><span class="n">3</span>接上發佈管線</h2>
+<p class="lead">三行。可以自己在終端機跑，也可以整段貼給 Claude 叫它跑。</p>
+
+<div class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-t="s1">Windows PowerShell</button>
+  <button role="tab" aria-selected="false" data-t="s2">Mac / Linux / WSL2</button>
+</div>
+<div class="pane on" id="s1">
+<pre><code>gh auth login
+git clone https://github.com/gjj22622/slides.git $HOME\slides
+powershell -ExecutionPolicy Bypass -File $HOME\slides\setup.ps1</code></pre>
+</div>
+<div class="pane" id="s2">
+<pre><code>gh auth login
+git clone https://github.com/gjj22622/slides.git ~/slides
+bash ~/slides/setup.sh</code></pre>
+</div>
+
+<p><code>gh auth login</code> 會問幾個問題：選 <strong>GitHub.com</strong>、<strong>HTTPS</strong>、<strong>用瀏覽器登入</strong>，帳號是 <code>gjj22622</code>。</p>
+<p>安裝腳本會逐項檢查 Python、git、GitHub 登入、建立 <code>pubslide</code> 指令、確認能連上 repo，最後告訴你幾項通過、幾項要處理。有 ❌ 就照它說的補，補完再跑一次。</p>
+
+<h2><span class="n">4</span>把私密區密碼搬過去</h2>
+<p>只發公開簡報的話可以跳過這步。要用加密的私密區才需要。</p>
+
+<h3>方法 A：從 HP 複製（推薦，舊的私密簡報還打得開）</h3>
+<div class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-t="p1">Windows</button>
+  <button role="tab" aria-selected="false" data-t="p2">Mac / Linux</button>
+</div>
+<div class="pane on" id="p1">
+<pre><code>mkdir $HOME\.config\slides -Force
+scp jacky@hp:~/.config/slides/password $HOME\.config\slides\password</code></pre>
+</div>
+<div class="pane" id="p2">
+<pre><code>mkdir -p ~/.config/slides
+scp jacky@hp:~/.config/slides/password ~/.config/slides/password
+chmod 600 ~/.config/slides/password</code></pre>
+</div>
+<p style="color:var(--mut);font-size:14.5px"><code>hp</code> 換成你 Tailscale 上的主機名稱或 IP。也可以直接在 HP 上 <code>cat ~/.config/slides/password</code> 看一眼，手動輸入到新機器。</p>
+
+<h3>方法 B：設一組新的</h3>
+<pre><code>pubslide --set-password '你的新密碼'</code></pre>
+<div class="card warn">
+  <p><strong>換密碼的代價</strong>：已經發佈的私密簡報是用舊密碼加密的，換了新密碼它們不會自動跟著換。要讓它們用新密碼，得把原稿重新發佈一次。原稿在 HP 的 <code>~/slides/private-src/</code>，那個目錄刻意不進 repo。</p>
+</div>
+
+<h2><span class="n">5</span>讓 Claude 知道要自動發佈</h2>
+<p class="lead">這步最容易漏。<code>~/.claude/CLAUDE.md</code> 沒有版本控制，不會跟著 repo 走。沒貼這段，新機器的 Claude 不知道你要它做完簡報就發佈。</p>
+
+<div class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-t="r1">Windows PowerShell</button>
+  <button role="tab" aria-selected="false" data-t="r2">Mac / Linux / WSL2</button>
+</div>
+<div class="pane on" id="r1">
+<pre><code>$r = Get-Content "$HOME\slides\claude-rule.md" -Raw
+$r.Substring($r.IndexOf("## HTML 簡報自動發佈規則")) | Add-Content "$HOME\.claude\CLAUDE.md"</code></pre>
+</div>
+<div class="pane" id="r2">
+<pre><code>sed -n '/^## HTML 簡報自動發佈規則/,$p' ~/slides/claude-rule.md >> ~/.claude/CLAUDE.md</code></pre>
+</div>
+
+<p>規則的正本在 repo 裡的 <code>claude-rule.md</code>，以後改規則改那份，兩台機器都貼得到同一版。</p>
+
+<h2><span class="n">6</span>選配：讓 Claude 能自己檢查做出來的東西</h2>
+<p class="lead">裝了這個，Claude 做完簡報會自己用瀏覽器截圖檢查再交件，而不是憑推測說「做好了」。双云那份公司簡介封面糊掉、人物腳穿過雲，都是靠這個抓到的。</p>
+<pre><code>pip install playwright
+playwright install chromium</code></pre>
+<p style="color:var(--mut);font-size:14.5px">約 150 MB。不裝也能用，只是交件前少一道自檢。</p>
+
+<h3>其他可選的</h3>
+<ul>
+  <li><strong>wiki</strong>：<code>git clone https://github.com/gjj22622/jacky-wiki.git ~/jacky-wiki</code>，方法論與知識庫都在裡面。</li>
+  <li><strong>Google Drive（gog）</strong>：要在本機自動上傳 Drive 才需要，設定較繁瑣，先不急。</li>
+</ul>
+
+<h2><span class="n">7</span>驗收</h2>
+<p class="lead">照順序做完這五項，就算搬好了。</p>
+<ol class="chk">
+  <li><code>pubslide --list</code> 列得出兩份既有簡報</li>
+  <li>複製 <code>~/slides/decks/_template.html</code> 改個標題，用 <code>pubslide</code> 發佈，拿得到網址</li>
+  <li>手機打開那條網址，看得到、翻得動</li>
+  <li>用 <code>pubslide --unpublish</code> 把測試那份撤掉</li>
+  <li>開一個新的 Claude 對話說「做一份三頁的測試簡報」，它應該做完自動發佈並附網址——沒有的話就是第 5 步的規則沒貼成功</li>
+</ol>
+
+<h2><span class="n">8</span>兩台機器並存要注意的</h2>
+<div class="card">
+  <h3>會自己處理好的</h3>
+  <ul>
+    <li>發佈前會自動拉遠端，兩台發的簡報都會出現在同一個首頁。</li>
+    <li>同時發佈撞在一起時會自動重試三次，不會互相覆蓋。</li>
+    <li>私密簡報清單以加密檔存在 repo 裡，兩台看到的是同一份。</li>
+  </ul>
+</div>
+<div class="card warn">
+  <h3>要你自己注意的</h3>
+  <ul>
+    <li><strong>私密簡報的原稿不會跟著走。</strong><code>private-src/</code> 裡是明文，刻意不進公開 repo。要在另一台改某份私密簡報，得自己把原稿複製過去。</li>
+    <li><strong>薇姐還是只在 HP 上。</strong>你在外面傳 .html 給她，她用的是 HP 上那份 repo，發佈結果兩邊共用，沒問題。</li>
+    <li><strong>HP 別關機</strong>，關了薇姐就停了。</li>
+  </ul>
+</div>
+
+<footer>
+  正本：<code>jacky-wiki/wiki/jos/migration/</code> · 發佈管線與腳本：
+  <a href="https://github.com/gjj22622/slides">github.com/gjj22622/slides</a> ·
+  公開簡報空間：<a href="https://gjj22622.github.io/slides/">gjj22622.github.io/slides</a>
+</footer>
+
+</div>
+
+<script>
+document.querySelectorAll('pre').forEach(function(pre){
+  var b=document.createElement('button');
+  b.className='copy'; b.type='button'; b.textContent='複製';
+  b.onclick=function(){
+    var t=pre.querySelector('code').innerText;
+    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject())
+      .then(function(){ b.textContent='已複製'; b.classList.add('done');
+        setTimeout(function(){ b.textContent='複製'; b.classList.remove('done'); },1600); })
+      .catch(function(){
+        var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta);
+        ta.select(); try{document.execCommand('copy')}catch(e){}
+        document.body.removeChild(ta);
+        b.textContent='已複製'; b.classList.add('done');
+        setTimeout(function(){ b.textContent='複製'; b.classList.remove('done'); },1600);
+      });
+  };
+  pre.appendChild(b);
+});
+document.querySelectorAll('.tabs').forEach(function(g){
+  var btns=[].slice.call(g.querySelectorAll('button'));
+  btns.forEach(function(b){
+    b.onclick=function(){
+      btns.forEach(function(x){
+        x.setAttribute('aria-selected', x===b?'true':'false');
+        document.getElementById(x.dataset.t).classList.toggle('on', x===b);
+      });
+    };
+  });
+});
+</script>
+</body>
+</html>
