@@ -45,7 +45,8 @@ BASE = "https://gjj22622.github.io/slides"
 META = ROOT / "decks" / "_meta.json"
 PRIV = ROOT / "p"                    # 加密後的私密簡報（進 repo，但是密文）
 PRIV_SRC = ROOT / "private-src"      # 私密原始檔＋索引資料（gitignore，只留本機）
-PRIV_META = PRIV_SRC / "_meta.json"
+PRIV_META = PRIV_SRC / "_meta.json"     # 本機快取
+PRIV_META_ENC = PRIV / "_meta.enc"      # 進 repo 的正本（加密）
 GIT_ENV = ["-c", "user.email=gjj22622@gmail.com", "-c", "user.name=Jacky"]
 
 
@@ -87,23 +88,37 @@ def save_meta(m: dict) -> None:
     META.write_text(json.dumps(m, ensure_ascii=False, indent=1, sort_keys=True), encoding="utf-8")
 
 
-def load_priv_meta() -> dict:
+def load_priv_meta(password: str = "") -> dict:
+    """正本是 repo 裡的加密檔（跨機器同步用）；解不開才退回本機快取。"""
+    if password and PRIV_META_ENC.exists():
+        try:
+            import lockbox
+            return json.loads(lockbox.decrypt_payload(
+                json.loads(PRIV_META_ENC.read_text(encoding="utf-8")), password))
+        except Exception as exc:
+            print(f"（提醒：私密清單解不開，改用本機快取：{exc}）", file=sys.stderr)
     try:
         return json.loads(PRIV_META.read_text(encoding="utf-8"))
     except Exception:
         return {}
 
 
-def save_priv_meta(m: dict) -> None:
+def save_priv_meta(m: dict, password: str = "") -> None:
     PRIV_SRC.mkdir(parents=True, exist_ok=True)
     PRIV_META.write_text(json.dumps(m, ensure_ascii=False, indent=1, sort_keys=True),
                          encoding="utf-8")
+    if password:
+        import lockbox
+        PRIV.mkdir(parents=True, exist_ok=True)
+        PRIV_META_ENC.write_text(json.dumps(
+            lockbox.encrypt(json.dumps(m, ensure_ascii=False, sort_keys=True), password)),
+            encoding="utf-8")
 
 
 def build_private_index(password: str) -> None:
     """私密區管理介面：本身也加密，解鎖後才看得到有哪些簡報。"""
     import lockbox
-    meta = load_priv_meta()
+    meta = load_priv_meta(password)
     rows = sorted(meta.items(), key=lambda kv: kv[1].get("date", ""), reverse=True)
     inner = lockbox.private_index_html(rows, now().strftime("%Y-%m-%d %H:%M"))
     PRIV.mkdir(parents=True, exist_ok=True)
@@ -124,6 +139,7 @@ def publish_private(src: Path, password: str, title: str = "", slug: str = "",
     if not re.match(r"^\d{4}-\d{2}-\d{2}-", slug):
         slug = f"{today():%Y-%m-%d}-{slug}"
 
+    git_pull()
     plaintext = src.read_text(encoding="utf-8")
     PRIV.mkdir(parents=True, exist_ok=True)
     PRIV_SRC.mkdir(parents=True, exist_ok=True)
@@ -132,11 +148,11 @@ def publish_private(src: Path, password: str, title: str = "", slug: str = "",
     dest.write_text(lockbox.wrap(plaintext, password, title), encoding="utf-8")
     shutil.copyfile(src, PRIV_SRC / f"{slug}.html")      # 本機留明文原稿，方便改
 
-    meta = load_priv_meta()
+    meta = load_priv_meta(password)
     meta[slug] = {"title": title, "date": today().isoformat(),
                   "size": len(plaintext.encode()),
                   "updated": now().isoformat(timespec="seconds")}
-    save_priv_meta(meta)
+    save_priv_meta(meta, password)
     build_private_index(password)
     build_index()
     git_sync(("update" if replaced else "publish") + f": [private] {slug}")
@@ -149,6 +165,7 @@ def publish_private(src: Path, password: str, title: str = "", slug: str = "",
 
 
 def unpublish_private(slug: str, password: str) -> dict:
+    git_pull()
     slug = slug.strip().removesuffix(".html")
     all_p = [q for q in sorted(PRIV.glob("*.html")) if q.name != "index.html"]
     exact = [q for q in all_p if q.stem == slug]
@@ -163,16 +180,16 @@ def unpublish_private(slug: str, password: str) -> dict:
         target = part[0]
     target.unlink()
     (PRIV_SRC / target.name).unlink(missing_ok=True)
-    meta = load_priv_meta()
+    meta = load_priv_meta(password)
     meta.pop(target.stem, None)
-    save_priv_meta(meta)
+    save_priv_meta(meta, password)
     build_private_index(password)
     git_sync(f"unpublish: [private] {target.stem}")
     return {"slug": target.stem, "removed": True, "private": True}
 
 
-def list_private() -> list[dict]:
-    meta = load_priv_meta()
+def list_private(password: str = "") -> list[dict]:
+    meta = load_priv_meta(password)
     return [{"slug": k, "title": v.get("title", k), "date": v.get("date", ""),
              "url": f"{BASE}/p/{k}.html"}
             for k, v in sorted(meta.items(), key=lambda kv: kv[1].get("date", ""), reverse=True)]
@@ -261,6 +278,15 @@ def wait_live(url: str, timeout: int = 150) -> bool:
     return False
 
 
+def git_pull() -> None:
+    """發佈前先拉遠端。不做這件事，build_index 只看得到本機檔案，
+    別台機器發佈的簡報就會從首頁消失（2026-09-11 實測抓到）。"""
+    r = subprocess.run(["git", *GIT_ENV, "pull", "--rebase", "-q", "origin", "main"],
+                       cwd=str(ROOT), text=True, capture_output=True, timeout=180)
+    if r.returncode != 0:
+        print(f"（提醒：拉遠端失敗，索引可能不完整：{r.stderr.strip()[:120]}）", file=sys.stderr)
+
+
 def git_sync(msg: str) -> None:
     """commit + push；多個對話／裝置同時發佈時先 rebase 再推，不互相打架。"""
     sh(["git", "add", "-A"])
@@ -283,6 +309,7 @@ def publish(src: Path, title: str = "", slug: str = "", wait: bool = True) -> di
         raise SystemExit(f"找不到檔案：{src}")
     if src.suffix.lower() not in (".html", ".htm"):
         raise SystemExit("只收 .html / .htm 單檔簡報")
+    git_pull()
     DECKS.mkdir(parents=True, exist_ok=True)
     title = title or extract_title(src) or src.stem
     slug = slugify(slug) or slugify(src.stem) or slugify(title)
@@ -308,6 +335,7 @@ def publish(src: Path, title: str = "", slug: str = "", wait: bool = True) -> di
 
 
 def unpublish(slug: str) -> dict:
+    git_pull()
     slug = slug.strip().removesuffix(".html")
     all_decks = [p for p in sorted(DECKS.glob("*.html")) if not p.name.startswith("_")]
     exact = [p for p in all_decks if p.stem == slug]
@@ -371,7 +399,11 @@ def main() -> int:
     if a.list:
         for d in list_decks():
             print(f"公開\t{d['slug']}\t{d['title']}\t{d['url']}")
-        for d in list_private():
+        try:
+            _pw = a.password or lockbox.load_password()
+        except SystemExit:
+            _pw = ""
+        for d in list_private(_pw):
             print(f"私密\t{d['slug']}\t{d['title']}\t{d['url']}")
         return 0
     if a.unpublish:
@@ -386,6 +418,7 @@ def main() -> int:
                       a.password or lockbox.load_password()), ensure_ascii=False))
         return 0
     if a.reindex:
+        git_pull()
         build_index()
         if load_priv_meta():
             build_private_index(a.password or lockbox.load_password())

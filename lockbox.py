@@ -51,6 +51,16 @@ def encrypt(plaintext: str, password: str) -> dict:
     return {"s": b64(salt), "i": b64(iv), "c": b64(ct), "n": ITERATIONS}
 
 
+def decrypt_payload(payload: dict, password: str) -> str:
+    """encrypt() 的反向操作（本機用；瀏覽器那邊由 Web Crypto 做同樣的事）。"""
+    salt = base64.b64decode(payload["s"])
+    iv = base64.b64decode(payload["i"])
+    ct = base64.b64decode(payload["c"])
+    key = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt,
+                     iterations=int(payload.get("n", ITERATIONS))).derive(password.encode("utf-8"))
+    return AESGCM(key).decrypt(iv, ct, None).decode("utf-8")
+
+
 # ─────────────────────────── 密碼管理 ───────────────────────────
 def load_password() -> str:
     """讀本機密碼檔。這個檔永遠不進 repo。"""
