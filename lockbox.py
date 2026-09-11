@@ -165,11 +165,25 @@ SHELL = """<!DOCTYPE html>
       frame.onload = function(){ try{ frame.contentWindow.focus(); }catch(e){} };
       try{ sessionStorage.setItem('sk', p); }catch(e){}
     }catch(e){
-      err.textContent = '密碼不對。';
+      // 清掉可能是舊密碼的暫存，否則下次進來又自動試一次錯的
+      try{ sessionStorage.removeItem('sk'); }catch(_){}
       go.disabled = false; go.textContent = '解鎖';
+      if (!busted()) {
+        err.innerHTML = '密碼不對。若剛換過密碼，你手上可能是瀏覽器的舊版快取 &mdash; ' +
+                        '<a href="#" id="rl" style="color:#7aa2ff">載入最新版再試</a>';
+        var rl = document.getElementById('rl');
+        if (rl) rl.onclick = function(ev){
+          ev.preventDefault();
+          location.replace(location.pathname + '?v=' + Date.now());
+        };
+      } else {
+        err.textContent = '密碼不對。這已經是最新版了。';
+      }
       pw.select();
     }
   }
+
+  function busted(){ return /[?&]v=/.test(location.search); }
 
   go.onclick = unlock;
   pw.addEventListener('keydown', function(e){ if(e.key === 'Enter') unlock(); });
@@ -178,6 +192,10 @@ SHELL = """<!DOCTYPE html>
     var saved = sessionStorage.getItem('sk');
     if(saved){ pw.value = saved; unlock(); }
   }catch(e){}
+  // 網址帶了避開快取的參數就把它藏起來，分享連結時不會帶著走
+  if (busted() && history.replaceState) {
+    try{ history.replaceState(null, '', location.pathname); }catch(e){}
+  }
 })();
 </script>
 </body>
