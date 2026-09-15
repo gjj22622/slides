@@ -1,3 +1,5 @@
 private-src/
 __pycache__/
 src/
+todolist.md
+todolist.backup.*.md
