@@ -1,5 +1,10 @@
 private-src/
 __pycache__/
-src/
 todolist.md
 todolist.backup.*.md
+
+# src/ 完全不進版控。
+# 教訓（2026-09-16）：私密簡報的明文原稿曾被誤放進 src/，
+# 因為 src/ 當時會進 repo，導致三份私密內容公開四天。
+# 現在原稿一律只留本機，要發佈就走 pubslide，公開的成品在 decks/。
+src/
