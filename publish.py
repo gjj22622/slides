@@ -288,7 +288,9 @@ def wait_live(url: str, timeout: int = 150) -> bool:
 def git_pull() -> None:
     """發佈前先拉遠端。不做這件事，build_index 只看得到本機檔案，
     別台機器發佈的簡報就會從首頁消失（2026-09-11 實測抓到）。"""
-    r = subprocess.run(["git", *GIT_ENV, "pull", "--rebase", "-q", "origin", "main"],
+    # --autostash：工作區有未提交的改動時，rebase 會直接拒絕執行。
+    # 少了這個，只要有髒檔案就拉不到遠端，別台機器發的簡報就從索引消失。
+    r = subprocess.run(["git", *GIT_ENV, "pull", "--rebase", "--autostash", "-q", "origin", "main"],
                        cwd=str(ROOT), text=True, capture_output=True, timeout=180)
     if r.returncode != 0:
         print(f"（提醒：拉遠端失敗，索引可能不完整：{r.stderr.strip()[:120]}）", file=sys.stderr)
@@ -305,7 +307,7 @@ def git_sync(msg: str) -> None:
         if r.returncode == 0:
             return
         # 遠端有別人剛推的東西 → 拉下來重放自己的 commit 再推
-        subprocess.run(["git", *GIT_ENV, "pull", "--rebase", "-q", "origin", "main"],
+        subprocess.run(["git", *GIT_ENV, "pull", "--rebase", "--autostash", "-q", "origin", "main"],
                        cwd=str(ROOT), text=True, capture_output=True, timeout=180)
         time.sleep(1 + attempt)
     raise SystemExit(f"推不上去：{r.stderr.strip()[:200]}")
