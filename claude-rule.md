@@ -44,6 +44,15 @@
 
 理由：密文本身是公開檔案，密碼夠強才安全；拿到密碼的人也可以轉發解密後的內容。私密區擋的是「被搜到、被路過的人看到」，不是「對方存心外流」。
 
+**要找舊簡報，先讀目錄**
+- `https://raw.githubusercontent.com/gjj22622/slides/main/CATALOG.md` — 全部公開簡報的標題、摘要、大綱、網址，一個檔看完，不用 clone 也不用跑程式。程式要解析就讀 `index.json`。
+- 私密簡報在公開目錄裡只有 slug 與網址。要看標題摘要得在 Jacky 本機跑 `pubslide --list`。
+
+**做簡報時順手標一下**
+- 在 `<head>` 寫 `<meta name="description">` 與 `<meta name="keywords">`（可加 `deck-category` / `deck-audience` / `deck-kind`），目錄就會照你寫的收，日後好找。
+- 沒寫也能發——摘要與大綱會自動從內文抽。但自己寫的一定比較準。
+- 發完順手把分類補進 `decks-meta.json`（域／群組／一句說明），不然首頁會把它列在「未分類」。
+
 **其他相關**
 - 不只簡報：任何要跨裝置給人看的 HTML 產出（報告、儀表板、原型）都適用同一條管線。
 - Jacky 人在外面時，也可以直接把 .html 檔傳給薇姐（@candoanyjobbot），她會發佈並回網址。

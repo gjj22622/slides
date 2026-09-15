@@ -212,8 +212,10 @@ def build_index() -> None:
                       "size": f.stat().st_size})
     items.sort(key=lambda x: (x["date"], x["slug"]), reverse=True)
     priv = len([q for q in PRIV.glob("*.html") if q.name != "index.html"]) if PRIV.exists() else 0
+    # 只到日、不到分：內容沒變時重建出來的檔案就完全一樣，
+    # 不會每跑一次 --reindex 就多一個只改時間戳的 commit，兩台機器也少一個衝突點。
     (ROOT / "index.html").write_text(
-        site_index.render(items, priv, now().strftime("%Y-%m-%d %H:%M")), encoding="utf-8")
+        site_index.render(items, priv, today().isoformat()), encoding="utf-8")
     build_catalog(meta)
 
 
