@@ -1,0 +1,17 @@
+# Jacky 的簡報空間
+
+> 鐘基啟（Jacky）的單檔 HTML 簡報庫。每份簡報都是一個獨立的 .html，打開網址就能看，不需要任何播放器。
+
+公開 6 份、私密 14 份。更新於 2026-09-16。
+
+## 要找簡報看這裡
+
+- [全文目錄 CATALOG.md](https://raw.githubusercontent.com/gjj22622/slides/main/CATALOG.md)：每份簡報的標題、摘要、大綱與網址。想找東西讀這個。
+- [結構化目錄 index.json](https://gjj22622.github.io/slides/index.json)：同樣的資料，JSON 格式。
+- [人看的首頁](https://gjj22622.github.io/slides/)：分類卡片＋即時搜尋。
+
+## 網址規則
+
+- 公開簡報：`https://gjj22622.github.io/slides/decks/<slug>.html`
+- 原始碼：`https://raw.githubusercontent.com/gjj22622/slides/main/decks/<slug>.html`
+- 私密簡報：`https://gjj22622.github.io/slides/p/<slug>.html`（AES-256-GCM 加密，要密碼）

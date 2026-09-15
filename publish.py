@@ -214,6 +214,58 @@ def build_index() -> None:
     priv = len([q for q in PRIV.glob("*.html") if q.name != "index.html"]) if PRIV.exists() else 0
     (ROOT / "index.html").write_text(
         site_index.render(items, priv, now().strftime("%Y-%m-%d %H:%M")), encoding="utf-8")
+    build_catalog(meta)
+
+
+def read_private_plaintext(slug: str, password: str) -> str:
+    """從 p/<slug>.html 的密文還原明文。
+
+    不依賴 private-src/ 的原稿——別台機器發的那幾份，本機根本沒有原稿，
+    但密文人人都拿得到，有密碼就解得開。裸 clone 也能重建私密目錄。
+    """
+    import lockbox
+    text = (PRIV / f"{slug}.html").read_text(encoding="utf-8")
+    m = re.search(r'<script id="payload" type="application/json">(.*?)</script>', text, re.S)
+    if not m:
+        raise ValueError("找不到密文")
+    return lockbox.decrypt_payload(json.loads(m.group(1)), password)
+
+
+def build_private_catalog(password: str) -> int:
+    """含標題摘要的私密簡報目錄，只寫本機 private-src/CATALOG.md（不進 repo）。
+    明文全程留在記憶體，不落地。"""
+    import deck_catalog
+    if not password or not PRIV.exists():
+        return 0
+    cached = load_priv_meta(password)
+    rows = []
+    for slug in sorted((p.stem for p in PRIV.glob("*.html") if p.name != "index.html"), reverse=True):
+        try:
+            scanned = deck_catalog.scan_text(read_private_plaintext(slug, password))
+        except Exception as exc:
+            print(f"（{slug} 解不開，略過：{exc}）", file=sys.stderr)
+            continue
+        info = cached.get(slug, {})
+        rows.append({**scanned,
+                     "slug": slug,
+                     "title": info.get("title") or scanned["title"] or slug,
+                     "date": info.get("date", ""),
+                     "url": f"{BASE}/p/{slug}.html",
+                     "path": f"p/{slug}.html",
+                     "domain": "", "domain_name": "", "cluster": ""})
+    deck_catalog.write_private_catalog(rows, today().isoformat())
+    return len(rows)
+
+
+def build_catalog(meta: dict | None = None) -> None:
+    """機器可讀目錄（index.json／CATALOG.md／llms.txt），給 AI 助理讀 GitHub 用。
+    只用日期不用時分，內容沒變就不會產生多餘的 diff 與衝突。內容在 deck_catalog.py。"""
+    import deck_catalog
+    try:
+        deck_catalog.build(meta if meta is not None else load_meta(),
+                           today().isoformat())
+    except Exception as e:                                   # 目錄壞掉不該擋住發佈
+        print(f"（提醒：機器可讀目錄沒建成功：{e}）", file=sys.stderr)
 
 
 def wait_live(url: str, timeout: int = 150) -> bool:
@@ -375,8 +427,18 @@ def main() -> int:
     if a.reindex:
         git_pull()
         build_index()
-        if load_priv_meta():
-            build_private_index(a.password or lockbox.load_password())
+        # 沒有密碼檔的機器一樣要能重建公開索引，不能在這裡整個掛掉
+        try:
+            _pw = a.password or lockbox.load_password()
+        except SystemExit:
+            _pw = ""
+            print("（沒有密碼，私密區索引與私密目錄略過）", file=sys.stderr)
+        if _pw:
+            if load_priv_meta(_pw):
+                build_private_index(_pw)
+            n = build_private_catalog(_pw)
+            if n:
+                print(f"私密目錄已重建（{n} 份，只在本機）")
         git_sync("reindex"); print("首頁已重建"); return 0
     if not a.file:
         ap.print_help(); return 1
