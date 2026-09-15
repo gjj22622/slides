@@ -6,56 +6,78 @@
 <meta name="robots" content="noindex">
 <title>Jacky 的簡報</title>
 <style>
-  :root { color-scheme: light dark;
-    --bg:#f6f7f9; --fg:#16181d; --mut:#6b7280; --card:#fff; --line:#e5e7eb; --acc:#2563eb; }
-  @media (prefers-color-scheme:dark) { :root {
-    --bg:#0f1115; --fg:#e8eaed; --mut:#9aa0a6; --card:#171a20; --line:#272b33; --acc:#7aa2ff; } }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6
-    "PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif; }
-  .wrap { max-width:860px; margin:0 auto; padding:48px 20px 80px; }
-  h1 { font-size:26px; margin:0 0 6px; letter-spacing:-.01em; }
-  .sub { color:var(--mut); font-size:14px; margin:0 0 32px; }
-  .grid { display:grid; gap:12px; }
-  .card { display:flex; flex-direction:column; gap:6px; padding:18px 20px; background:var(--card);
-    border:1px solid var(--line); border-radius:12px; text-decoration:none; color:inherit;
-    transition:border-color .15s, transform .15s; }
-  .card:hover { border-color:var(--acc); transform:translateY(-1px); }
-  .t { font-weight:600; font-size:17px; }
-  .m { color:var(--mut); font-size:13px; }
-  .empty { color:var(--mut); }
-  code { background:var(--line); padding:2px 6px; border-radius:5px; font-size:13px; }
-  footer { margin-top:40px; color:var(--mut); font-size:13px; border-top:1px solid var(--line); padding-top:16px; }
+ :root{ --bg:#f6f7f9; --paper:#fff; --ink:#16181d; --mut:#6b7280; --line:#e5e7eb;
+   --acc:#2563eb; --grn:#0f9d58; --soft:#f1f5fa;
+   --font:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,-apple-system,sans-serif;
+   --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace; }
+ @media (prefers-color-scheme:dark){ :root{ --bg:#0f1115; --paper:#171a20; --ink:#e8eaed;
+   --mut:#9aa0a6; --line:#272b33; --acc:#7aa2ff; --soft:#1a212a; } }
+ *{ box-sizing:border-box; margin:0; padding:0; }
+ body{ background:var(--bg); color:var(--ink); font-family:var(--font);
+   font-size:16px; line-height:1.7; -webkit-font-smoothing:antialiased; }
+ .wrap{ max-width:880px; margin:0 auto; padding:46px 20px 90px; }
+ header{ border-bottom:1px solid var(--line); padding-bottom:20px; }
+ h1{ font-size:clamp(23px,3.6vw,30px); letter-spacing:-.02em; margin:0 0 7px; }
+ .sub{ color:var(--mut); font-size:14.5px; }
+ .stats{ display:flex; gap:20px; flex-wrap:wrap; margin-top:13px; font-size:14px; color:var(--mut); }
+ .stats b{ color:var(--ink); font-size:19px; font-family:var(--mono); }
+ #q{ width:100%; margin:22px 0 6px; padding:12px 15px; font-size:16px; border-radius:10px;
+   border:1px solid var(--line); background:var(--paper); color:var(--ink); outline:none; }
+ #q:focus{ border-color:var(--acc); }
+ .hint{ font-size:12.5px; color:var(--mut); margin-bottom:16px; }
+ h2{ font-size:18px; margin:30px 0 2px; padding-top:18px; border-top:1px solid var(--line);
+   display:flex; align-items:baseline; gap:9px; }
+ h2 .code{ font:700 11px/1 var(--mono); letter-spacing:.06em; color:#fff; background:var(--acc);
+   padding:5px 8px; border-radius:6px; }
+ h2 .cnt{ margin-left:auto; font:600 13px/1 var(--mono); color:var(--mut); }
+ h3{ font-size:13.5px; color:var(--mut); margin:16px 0 5px; font-weight:700; }
+ .card{ display:block; background:var(--paper); border:1px solid var(--line);
+   border-left:3px solid var(--grn); border-radius:10px; padding:14px 16px; margin:9px 0;
+   text-decoration:none; color:inherit; transition:border-color .15s, transform .15s; }
+ .card:hover{ border-color:var(--acc); border-left-color:var(--acc); transform:translateY(-1px); }
+ .card .t{ font-weight:700; font-size:16.5px; }
+ .card .d{ color:var(--mut); font-size:14px; margin-top:4px; }
+ .card .m{ color:var(--mut); font-size:11.5px; font-family:var(--mono); margin-top:7px; }
+ .empty{ color:var(--mut); }
+ footer{ margin-top:40px; padding-top:16px; border-top:1px solid var(--line);
+   color:var(--mut); font-size:13px; display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
+ footer a{ color:var(--acc); text-decoration:none; }
+ .lock{ margin-left:auto; }
+ code{ font-family:var(--mono); font-size:.88em; background:var(--soft); padding:2px 5px; border-radius:4px; }
+ @media(max-width:640px){ .wrap{ padding:26px 14px 60px; } h1{ font-size:21px; } }
 </style>
 </head>
-<body>
-  <div class="wrap">
-    <h1>Jacky 的簡報</h1>
-    <p class="sub">共 5 份 · 更新於 2026-09-15 23:30</p>
-    <div class="grid">
-      <a class="card" href="decks/2026-09-15-tbsa-0915.html">
-        <span class="t">台灣年度企劃／行銷獎項清單 × TBSA 競賽時程</span>
-        <span class="m">2026-09-15 · 6 KB</span>
-      </a>
-      <a class="card" href="decks/2026-09-15-airun-ai-coach.html">
-        <span class="t">AIRUN AI 陪跑教練 — 服務簡報</span>
-        <span class="m">2026-09-15 · 11 KB</span>
-      </a>
-      <a class="card" href="decks/2026-09-11-shuangyun-cloud-marketing.html">
-        <span class="t">双云行銷｜你的雲端行銷部</span>
-        <span class="m">2026-09-11 · 198 KB</span>
-      </a>
-      <a class="card" href="decks/2026-09-11-move-to-desktop.html">
-        <span class="t">移到本機 Claude Desktop — 移轉步驟</span>
-        <span class="m">2026-09-11 · 14 KB</span>
-      </a>
-      <a class="card" href="decks/2026-09-11-html-deck-guide.html">
-        <span class="t">HTML 簡報製作法 — 為什麼改、怎麼做、怎麼傳</span>
-        <span class="m">2026-09-11 · 26 KB</span>
-      </a>
-    </div>
-    <footer>公開網址，任何拿到連結的人都能看。真正機密的請放 Google Drive。
-      <a href="p/" style="color:var(--mut);text-decoration:none;float:right">&#128274; 私密區</a></footer>
-  </div>
-</body>
-</html>
+<body><div class="wrap">
+<header>
+  <h1>Jacky 的簡報</h1>
+  <p class="sub">依 jacky-wiki 域分類。點卡片直接開，不用密碼。</p>
+  <div class="stats"><span><b>5</b> 公開</span>
+    <span><b>14</b> 私密</span>
+    <span><b>4</b> 個域</span>
+    <span>更新 2026-09-15 23:33</span></div>
+</header>
+<input id="q" type="search" placeholder="搜尋標題、說明…（例如：陪跑、双云、獎項）" autocomplete="off">
+<p class="hint">打字即時篩選，Esc 清除。</p>
+<section data-dom><h2><span class="code">shuangyun</span>双云行銷<span class="cnt">2</span></h2><h3>對外業務</h3><a class="card" href="decks/2026-09-15-airun-ai-coach.html" data-s="airun ai 陪跑教練 — 服務簡報 airun ai 陪跑教練服務簡報。四階傳承旅程、五項規格三個月一輪、兩種定價模型。給客戶看的版本。 2026-09-15-airun-ai-coach"><div class="t">AIRUN AI 陪跑教練 — 服務簡報</div><div class="d">AIRUN AI 陪跑教練服務簡報。四階傳承旅程、五項規格三個月一輪、兩種定價模型。給客戶看的版本。</div><div class="m">2026-09-15 · 11 KB</div></a><a class="card" href="decks/2026-09-11-shuangyun-cloud-marketing.html" data-s="双云行銷｜你的雲端行銷部 双云的公司簡介，18 頁捲動式。有服務內容、價目、案例、faq、免費診斷 cta。給客戶看的就是這份。 2026-09-11-shuangyun-cloud-marketing"><div class="t">双云行銷｜你的雲端行銷部</div><div class="d">双云的公司簡介，18 頁捲動式。有服務內容、價目、案例、FAQ、免費診斷 CTA。給客戶看的就是這份。</div><div class="m">2026-09-11 · 198 KB</div></a></section><section data-dom><h2><span class="code">ailab</span>AI 實踐<span class="cnt">1</span></h2><h3>工作方法</h3><a class="card" href="decks/2026-09-11-html-deck-guide.html" data-s="html 簡報製作法 — 為什麼改、怎麼做、怎麼傳 html 簡報製作法。為什麼改、舞台鎖定怎麼做、視覺可能性、怎麼傳。這套做法的說明書。 2026-09-11-html-deck-guide"><div class="t">HTML 簡報製作法 — 為什麼改、怎麼做、怎麼傳</div><div class="d">HTML 簡報製作法。為什麼改、舞台鎖定怎麼做、視覺可能性、怎麼傳。這套做法的說明書。</div><div class="m">2026-09-11 · 26 KB</div></a></section><section data-dom><h2><span class="code">tbsa</span>TBSA 商務企劃協會<span class="cnt">1</span></h2><h3>獎項與競賽</h3><a class="card" href="decks/2026-09-15-tbsa-0915.html" data-s="台灣年度企劃／行銷獎項清單 × tbsa 競賽時程 台灣年度企劃／行銷獎項清單，對照 tbsa 自己的競賽時程。 2026-09-15-tbsa-0915"><div class="t">台灣年度企劃／行銷獎項清單 × TBSA 競賽時程</div><div class="d">台灣年度企劃／行銷獎項清單，對照 TBSA 自己的競賽時程。</div><div class="m">2026-09-15 · 6 KB</div></a></section><section data-dom><h2><span class="code">jos</span>AI 作業系統<span class="cnt">1</span></h2><h3>環境轉移</h3><a class="card" href="decks/2026-09-11-move-to-desktop.html" data-s="移到本機 claude desktop — 移轉步驟 把簡報工作搬到本機 claude desktop 的逐步指令，含複製按鈕與 windows／mac 分頁。 2026-09-11-move-to-desktop"><div class="t">移到本機 Claude Desktop — 移轉步驟</div><div class="d">把簡報工作搬到本機 Claude Desktop 的逐步指令，含複製按鈕與 Windows／Mac 分頁。</div><div class="m">2026-09-11 · 14 KB</div></a></section>
+<footer>
+  <span>公開網址，任何拿到連結的人都能看。機密的請放 Google Drive。</span>
+  <a class="lock" href="p/">&#128274; 私密區（14 份，需密碼）</a>
+</footer>
+</div>
+<script>
+var q=document.getElementById('q');
+function f(){
+  var v=q.value.trim().toLowerCase();
+  document.querySelectorAll('[data-dom]').forEach(function(s){
+    var any=false;
+    s.querySelectorAll('.card').forEach(function(c){
+      var hit=!v||c.dataset.s.indexOf(v)>=0;
+      c.style.display=hit?'block':'none'; if(hit) any=true;
+    });
+    s.style.display=any?'block':'none';
+  });
+}
+q.addEventListener('input',f);
+q.addEventListener('keydown',function(e){ if(e.key==='Escape'){ q.value=''; f(); } });
+</script>
+</body></html>

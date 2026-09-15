@@ -198,69 +198,22 @@ def list_private(password: str = "") -> list[dict]:
 
 
 def build_index() -> None:
+    """公開首頁＝可直接點的分類索引（不用密碼）。版面在 site_index.py。"""
+    import site_index
     meta = load_meta()
     items = []
     for f in sorted(DECKS.glob("*.html")):
         if f.name.startswith("_"):
             continue
         info = meta.get(f.stem, {})
-        items.append({
-            "slug": f.stem,
-            "title": info.get("title") or extract_title(f) or f.stem,
-            "date": info.get("date", ""),
-            "size": f.stat().st_size,
-        })
+        items.append({"slug": f.stem,
+                      "title": info.get("title") or extract_title(f) or f.stem,
+                      "date": info.get("date", ""),
+                      "size": f.stat().st_size})
     items.sort(key=lambda x: (x["date"], x["slug"]), reverse=True)
-
-    cards = "\n".join(
-        f'''      <a class="card" href="decks/{html_mod.escape(i["slug"])}.html">
-        <span class="t">{html_mod.escape(i["title"])}</span>
-        <span class="m">{html_mod.escape(i["date"])} · {i["size"] // 1024} KB</span>
-      </a>''' for i in items) or '      <p class="empty">還沒有簡報。傳一份 .html 給薇姐，或跑 <code>pubslide 檔案.html</code>。</p>'
-
-    (ROOT / "index.html").write_text(f'''<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex">
-<title>Jacky 的簡報</title>
-<style>
-  :root {{ color-scheme: light dark;
-    --bg:#f6f7f9; --fg:#16181d; --mut:#6b7280; --card:#fff; --line:#e5e7eb; --acc:#2563eb; }}
-  @media (prefers-color-scheme:dark) {{ :root {{
-    --bg:#0f1115; --fg:#e8eaed; --mut:#9aa0a6; --card:#171a20; --line:#272b33; --acc:#7aa2ff; }} }}
-  * {{ box-sizing:border-box; }}
-  body {{ margin:0; background:var(--bg); color:var(--fg); font:16px/1.6
-    "PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif; }}
-  .wrap {{ max-width:860px; margin:0 auto; padding:48px 20px 80px; }}
-  h1 {{ font-size:26px; margin:0 0 6px; letter-spacing:-.01em; }}
-  .sub {{ color:var(--mut); font-size:14px; margin:0 0 32px; }}
-  .grid {{ display:grid; gap:12px; }}
-  .card {{ display:flex; flex-direction:column; gap:6px; padding:18px 20px; background:var(--card);
-    border:1px solid var(--line); border-radius:12px; text-decoration:none; color:inherit;
-    transition:border-color .15s, transform .15s; }}
-  .card:hover {{ border-color:var(--acc); transform:translateY(-1px); }}
-  .t {{ font-weight:600; font-size:17px; }}
-  .m {{ color:var(--mut); font-size:13px; }}
-  .empty {{ color:var(--mut); }}
-  code {{ background:var(--line); padding:2px 6px; border-radius:5px; font-size:13px; }}
-  footer {{ margin-top:40px; color:var(--mut); font-size:13px; border-top:1px solid var(--line); padding-top:16px; }}
-</style>
-</head>
-<body>
-  <div class="wrap">
-    <h1>Jacky 的簡報</h1>
-    <p class="sub">共 {len(items)} 份 · 更新於 {now().strftime("%Y-%m-%d %H:%M")}</p>
-    <div class="grid">
-{cards}
-    </div>
-    <footer>公開網址，任何拿到連結的人都能看。真正機密的請放 Google Drive。
-      <a href="p/" style="color:var(--mut);text-decoration:none;float:right">&#128274; 私密區</a></footer>
-  </div>
-</body>
-</html>
-''', encoding="utf-8")
+    priv = len([q for q in PRIV.glob("*.html") if q.name != "index.html"]) if PRIV.exists() else 0
+    (ROOT / "index.html").write_text(
+        site_index.render(items, priv, now().strftime("%Y-%m-%d %H:%M")), encoding="utf-8")
 
 
 def wait_live(url: str, timeout: int = 150) -> bool:
