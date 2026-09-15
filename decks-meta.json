@@ -1,0 +1,86 @@
+{
+  "_說明": "簡報索引的分類資料。domain 用 jacky-wiki 的域代碼；cluster 是專案群組。新發佈的簡報若不在這裡，索引會列進「未分類」提醒補。改完跑 python3 index-decks.py 重建索引。",
+  "_域": {
+    "shuangyun": "双云行銷",
+    "jwood": "Jwood 基的木藝",
+    "ailab": "AI 實踐",
+    "jlife": "鐘基啟的人生回憶錄",
+    "tbsa": "TBSA 商務企劃協會",
+    "nchu": "中興大學博士研究",
+    "jos": "AI 作業系統",
+    "aischool": "双云 AI Agent School",
+    "portfolio": "作品域",
+    "yinian": "一念清涼",
+    "cross-domain": "跨域素材"
+  },
+  "decks": {
+    "2026-09-11-shuangyun-cloud-marketing": {
+      "domain": "shuangyun", "cluster": "對外業務",
+      "desc": "双云的公司簡介，18 頁捲動式。有服務內容、價目、案例、FAQ、免費診斷 CTA。給客戶看的就是這份。"
+    },
+    "2026-09-15-tbsa-0915": {
+      "domain": "tbsa", "cluster": "獎項與競賽",
+      "desc": "台灣年度企劃／行銷獎項清單，對照 TBSA 自己的競賽時程。"
+    },
+    "2026-09-14-planning-awards": {
+      "domain": "tbsa", "cluster": "獎項與競賽",
+      "desc": "年度最佳企劃獎項盤點，台灣與國際。每項標開辦年份、評審機制、有無付費買獎疑慮。"
+    },
+    "2026-09-11-html-deck-guide": {
+      "domain": "ailab", "cluster": "工作方法",
+      "desc": "HTML 簡報製作法。為什麼改、舞台鎖定怎麼做、視覺可能性、怎麼傳。這套做法的說明書。"
+    },
+    "2026-09-11-move-to-desktop": {
+      "domain": "jos", "cluster": "環境轉移",
+      "desc": "把簡報工作搬到本機 Claude Desktop 的逐步指令，含複製按鈕與 Windows／Mac 分頁。"
+    },
+    "2026-09-14-llm-quota-auto-shift": {
+      "domain": "jos", "cluster": "薇姐開發",
+      "desc": "薇姐雙引擎跨平台額度動態 Shift 開發計畫書 v2。"
+    },
+    "2026-09-14-cross-platform-llm-quota-auto-shift-g": {
+      "domain": "jos", "cluster": "薇姐開發",
+      "desc": "跨 AI 平台高可用架構實踐指南，Claude 與 Antigravity 雙引擎。"
+    },
+    "2026-10-02-talk-plan": {
+      "domain": "nchu", "cluster": "10/2 ATE 論壇",
+      "desc": "★ 講稿計畫（主版，目前 v4）。五段骨架、時間分配、交棒設計、查證狀態表。"
+    },
+    "2026-09-15-v3": {
+      "domain": "nchu", "cluster": "10/2 ATE 論壇",
+      "desc": "★ 大綱一頁定稿 v3。9/15 節點的交付物。"
+    },
+    "2026-10-02-talk-arch-decision": {
+      "domain": "nchu", "cluster": "10/2 ATE 論壇",
+      "desc": "A／B／C 三種架構一頁對照，拍板用。"
+    },
+    "2026-10-02-talk-plan-b": {
+      "domain": "nchu", "cluster": "10/2 ATE 論壇",
+      "desc": "架構 B：Δt 延遲型，第二種講法與邏輯。"
+    },
+    "2026-10-02-talk-plan-c": {
+      "domain": "nchu", "cluster": "10/2 ATE 論壇",
+      "desc": "骨架 C v2：逐段開場句、過場句、交棒台詞。上台前背這份。"
+    },
+    "2026-10-02-trends-cases": {
+      "domain": "nchu", "cluster": "10/2 ATE 論壇",
+      "desc": "趨勢分析與案例庫 v4，逐則來源核對。演講的彈藥庫。"
+    },
+    "2026-10-02-starlink-backhaul": {
+      "domain": "nchu", "cluster": "10/2 ATE 論壇",
+      "desc": "田間回傳：趨勢、平替品與瓶頸位移。11 則文獻加 9 張對照表。結論：論點成立但要改口徑，台灣 Starlink 尚未開通。"
+    },
+    "2026-10-02-agent-collision": {
+      "domain": "nchu", "cluster": "10/2 ATE 論壇",
+      "desc": "第五階「致動」成立了沒？結論：不是對撞是錯身而過，閉環都由非 LLM 方法完成。附 117 個存證檔與引句比對腳本。"
+    },
+    "2026-10-02-research-todo": {
+      "domain": "nchu", "cluster": "10/2 ATE 論壇",
+      "desc": "研究待辦規格書（已完成，留存作紀錄）。"
+    },
+    "2026-09-11-ncku-demoday-agritech": {
+      "domain": "nchu", "cluster": "食農／SIC",
+      "desc": "成大創新日 11/4，14 家團隊逐家查商工登記，找出哪幾家跟智慧農業有關。富聚生技與芸蘭國際兩家直接相關。"
+    }
+  }
+}
