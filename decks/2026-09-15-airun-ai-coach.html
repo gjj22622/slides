@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AIRUN AI 陪跑教練 — 服務簡報</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,800&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--paper:#F2F4F8;--elev:#fff;--sunk:#E5E9F0;--ink:#0A0E1A;--ink70:#2D3445;--ink55:#525968;--mut:#6B7385;--rule:rgba(10,14,26,.12);--signal:#00B872;--glow:rgba(0,184,114,.22);--f-disp:"Newsreader",Georgia,serif;--f-sans:"Space Grotesk","Noto Sans TC","PingFang TC",sans-serif;--f-mono:"JetBrains Mono",ui-monospace,monospace}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:#0A0E1A;font-family:var(--f-sans);color:var(--ink)}
+  .deck{height:100vh;width:100vw;overflow:hidden;position:relative;background:var(--paper)}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;padding:8vh 9vw;background:radial-gradient(120% 90% at 82% 8%,#E9EEF6 0,var(--paper) 55%)}
+  .slide::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(var(--rule) 1px,transparent 1px),linear-gradient(90deg,var(--rule) 1px,transparent 1px);background-size:64px 64px;opacity:.22;mask-image:radial-gradient(circle at 80% 10%,#000 0,#000 26%,transparent 72%)}
+  .slide.on{display:flex;animation:f .35s ease}@keyframes f{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .slide>*{position:relative;z-index:1}
+  .ey{font-family:var(--f-mono);font-size:1.05vw;letter-spacing:.2em;color:var(--ink55);text-transform:uppercase;margin-bottom:2.6vh}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--signal);box-shadow:0 0 0 4px var(--glow);margin-right:.6em;vertical-align:1px}
+  h1{font-family:var(--f-disp);font-size:5vw;line-height:1.04;letter-spacing:-.02em;font-weight:800}
+  h1 em,h2 em{font-style:normal;color:var(--signal)}
+  h2{font-family:var(--f-disp);font-size:3.4vw;line-height:1.14;letter-spacing:-.02em;font-weight:800}
+  .lead{font-size:1.9vw;line-height:1.6;color:var(--ink55);margin-top:3vh;max-width:42em}
+  p,li{font-size:1.55vw;line-height:1.6;color:var(--ink70)}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6vw;margin-top:4vh}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.8vw;margin-top:3.5vh}
+  .card{background:var(--elev);border:1px solid var(--rule);border-radius:14px;padding:3vh 1.8vw}
+  .card .k{font-family:var(--f-mono);font-size:1vw;letter-spacing:.1em;color:var(--ink55);text-transform:uppercase;margin-bottom:1vh}
+  .card h3{font-size:1.6vw;font-weight:750;margin-bottom:.8vh}.card p{font-size:1.3vw}
+  .stage{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1vw;margin-top:4vh}
+  .st{background:var(--elev);border:1px solid var(--rule);border-top:4px solid var(--signal);border-radius:12px;padding:2.6vh 1.1vw}
+  .st .no{font-family:var(--f-mono);font-size:.92vw;letter-spacing:.1em;color:var(--ink55)}
+  .st h3{font-size:1.45vw;font-weight:800;margin:.7vh 0 1vh}.st p{font-size:1.08vw;color:var(--ink70)}
+  .st .ha{font-size:.95vw;color:var(--mut);margin-top:1vh;font-family:var(--f-mono)}
+  .callout{background:var(--ink);color:var(--paper);border-radius:16px;padding:6vh 4%}
+  .callout h2{color:var(--paper)}.callout h2 em{color:#00D684}.callout .lead{color:rgba(242,244,248,.82)}
+  .price{display:grid;grid-template-columns:1fr 1fr;gap:1.8vw;margin-top:4vh}
+  .pc{background:var(--elev);border:1px solid rgba(10,14,26,.25);border-radius:16px;padding:3.4vh 2vw}
+  .pc.feat{border-color:var(--signal);box-shadow:0 0 0 3px var(--glow)}
+  .pc .tag{font-family:var(--f-mono);font-size:1vw;letter-spacing:.1em;color:var(--ink55);text-transform:uppercase}
+  .pc .amt{font-family:var(--f-disp);font-size:2.6vw;font-weight:800;margin:1vh 0}.pc .amt small{font-size:1vw;color:var(--ink55)}
+  .pc p{font-size:1.2vw}
+  ul.t{list-style:none;margin-top:1.5vh}ul.t li{padding-left:1.4em;position:relative;font-size:1.2vw;margin:.8vh 0}ul.t li::before{content:"▸";position:absolute;left:0;color:var(--signal)}
+  .big{font-size:6vw;font-weight:900;font-family:var(--f-disp);letter-spacing:-.02em;line-height:1.05}
+  .pg{position:absolute;bottom:3.4vh;right:9vw;font-family:var(--f-mono);font-size:.95vw;color:var(--mut)}
+  .bl{position:absolute;bottom:3.4vh;left:9vw;font-family:var(--f-mono);font-size:.82vw;color:var(--mut);letter-spacing:.1em;text-transform:uppercase}
+  .kbd{position:absolute;bottom:3.4vh;left:50%;transform:translateX(-50%);font-family:var(--f-mono);font-size:.8vw;color:#aab3c0}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<section class="slide on">
+  <div class="ey"><span class="dot"></span>AIRUN · AI 陪跑教練</div>
+  <h1>人帶得走的本事，<br>變成公司<em>留得下</em>的資產。</h1>
+  <p class="lead">把老闆與老師傅的判斷鑄進 AI 分身——人陪你走順，AI 接手放大。從拆解到 AI 自己 Run。</p>
+  <div class="bl">AIRUN · Cosmos Light</div>
+</section>
+
+<section class="slide">
+  <div class="ey">問題 · 知識傳承</div>
+  <h2>公司最值錢的東西，<br>鎖在<em>幾顆腦袋</em>裡。</h2>
+  <p class="lead">老師傅怎麼判斷、老闆為什麼這樣決定——這些「說不清卻每次都對」的本事，沒寫在任何文件裡。</p>
+  <div class="grid">
+    <div class="card"><div class="k">風險一</div><h3>人走，本事跟著走</h3><p>能幹的人一離開，know-how 蒸發。</p></div>
+    <div class="card"><div class="k">風險二</div><h3>新人永遠在重學</h3><p>從零摸索，老師傅一再重教。</p></div>
+    <div class="card"><div class="k">風險三</div><h3>判斷無法複製</h3><p>公司長大，瓶頸還是那幾個人。</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="ey">為什麼舊方法接不住</div>
+  <h2>寫文件、拍影片、師徒帶——<br>都漏掉同一件事：<em>判斷</em>。</h2>
+  <div class="grid">
+    <div class="card"><div class="k">寫 SOP</div><h3>判斷寫不進文件</h3><p>步驟寫得出，「為什麼這樣決定」寫不出，照做還是錯。</p></div>
+    <div class="card"><div class="k">拍影片</div><h3>沒人看、會過期</h3><p>錄完就躺著，產品一改就作廢。</p></div>
+    <div class="card"><div class="k">師徒帶</div><h3>綁死老師傅</h3><p>慢、一次一個，退休就斷。</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="callout">
+    <div class="ey" style="color:#00D684">AIRUN 的解法</div>
+    <h2>把人的判斷，<em>鑄</em>進一個 AI 分身。</h2>
+    <p class="lead">文件留得住步驟，留不住判斷。我們把那套「說不清卻每次都對」的判斷一鎚一鎚鑄進 AI——它在人不在場時，照樣照你的脾性決斷。知識從此是公司的資產。</p>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="ey">四階傳承旅程 · 人 + AI 協作</div>
+  <h2>每往前一階，<em>人退一點、AI 進一點</em>。</h2>
+  <div class="stage">
+    <div class="st"><div class="no">STAGE 01</div><h3>拆解</h3><p>拆 work flow，標出哪些交給 AI、哪些須人判斷。</p><div class="ha">人主導 · AI 對照</div></div>
+    <div class="st"><div class="no">STAGE 02</div><h3>陪跑</h3><p>把判斷鑄成可重複工作流，人陪著跑順。</p><div class="ha">人帶 · AI 接手重複</div></div>
+    <div class="st"><div class="no">STAGE 03</div><h3>擴散全公司</h3><p>複製成統一方法，人人接得住。</p><div class="ha">人做模板 · AI 當助教</div></div>
+    <div class="st"><div class="no">STAGE 04</div><h3>AI 自己 Run</h3><p>自動化、分權、自我更新。</p><div class="ha">人定規則 · AI 自走</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="ey">服務內容</div>
+  <h2>五項規格，<em>三個月</em>一輪。</h2>
+  <div class="grid2">
+    <div class="card"><div class="k">五項基本規格</div><ul class="t"><li>工作流拆解（AI／人節點分界）</li><li>判斷力建模（老闆複製人）</li><li>知識萃取文件化（結構化 MD 庫）</li><li>陪跑與交棒</li><li>每週檢視：節點完成度＋人／AI 比例</li></ul></div>
+    <div class="card"><div class="k">三階段</div><ul class="t"><li>第一月 拆解＋建模＋文件化</li><li>第二月 實案陪跑、調校判斷</li><li>第三月 自動化、分權、交棒</li></ul><p style="margin-top:1.5vh;color:var(--ink55);font-size:1.1vw">客製交付物（分身／知識庫／MD）付清後著作財產權歸貴公司所有。</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="ey">定價 · 兩種模型擇一</div>
+  <h2>按<em>價值</em>算，或按<em>月</em>算。</h2>
+  <div class="price">
+    <div class="pc"><div class="tag">模型 A · 價值分潤</div><div class="amt">10%<small> / 可量化效益</small></div><p>撙節費用、節省工時價值、新增業績取其 10%。</p><ul class="t"><li>效益看得見時最划算</li><li>簽前共定基準線與量測</li><li>你賺，我們才賺</li></ul></div>
+    <div class="pc feat"><div class="tag">模型 B · 固定月費</div><div class="amt">NT$150,000<small> / 月（含稅）</small></div><p>成本可預期，效益難即時量化時的穩當選擇。</p><ul class="t"><li>三階段完整交付、每週檢視</li><li>交付物付清後歸你</li><li>首批客戶享專案折讓</li></ul></div>
+  </div>
+</section>
+
+<section class="slide" style="text-align:center;align-items:center">
+  <div class="ey" style="text-align:center"><span class="dot"></span>第一步 · 不談價格，先找第一條知識線</div>
+  <div class="big">說不清的本事，<br><em style="font-style:normal;color:var(--signal)">也能傳下去</em>。</div>
+  <p class="lead" style="margin:4vh auto 0;text-align:center">先做一次「知識傳承健檢」——我們陪你拆解，哪幾條關鍵知識線最該先傳承。會後 48 小時給你一頁可執行的 Pilot 範圍。</p>
+  <p class="lead" style="margin-top:3vh;text-align:center;color:var(--ink)">airun.tw/ai-coach　·　tw52613000@2clouds.cc</p>
+  <div class="bl">AIRUN · 双云行銷有限公司 經營</div>
+</section>
+
+</div>
+<div class="pg" id="pg">1</div><div class="kbd">← → 翻頁 · F 全螢幕</div>
+<script>
+const s=[...document.querySelectorAll('.slide')];let i=0;const pg=document.getElementById('pg');
+function show(n){s[i].classList.remove('on');i=Math.max(0,Math.min(s.length-1,n));s[i].classList.add('on');pg.textContent=(i+1)+' / '+s.length}
+document.addEventListener('keydown',e=>{if(['ArrowRight','PageDown',' '].includes(e.key))show(i+1);else if(['ArrowLeft','PageUp'].includes(e.key))show(i-1);else if(e.key==='Home')show(0);else if(e.key==='End')show(s.length-1);else if(e.key.toLowerCase()==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}});
+document.getElementById('deck').addEventListener('click',e=>show(e.clientX/innerWidth<0.3?i-1:i+1));pg.textContent='1 / '+s.length;
+</script>
+</body>
+</html>
